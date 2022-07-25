@@ -174,3 +174,8 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/django
 
 
+/manager/templates/defaults/login.html
+/manager/templates/defaults/register.html
+/manager/templates/defaults/index.html
+/manager/templates/defaults/form.html
+/manager/templates/defaults/form-confirmation.html
