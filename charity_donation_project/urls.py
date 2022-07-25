@@ -15,7 +15,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from manager import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.LandingPage.as_view(), name='landing-page'),
+    path('add_donation/', views.AddDonation.as_view(), name='add-donation'),
+    path('login/', views.Login.as_view(), name='login'),
+    path('register/', views.Register.as_view(), name='register'),
+
+    # path('form/', views.form),
+    # path('form_confirmation/', views.form_confirmation),
+    # path('form_login/', views.login),
+    # path('form_register/', views.register),
+    # path('base/', views.base),
+    # path('index2/', views.index2),
+    # path('form2/', views.form2),
+    # path('form_confirmation2/', views.form_confirmation2),
+    # path('form_login2/', views.login2),
+    # path('form_register2/', views.register2),
 ]
