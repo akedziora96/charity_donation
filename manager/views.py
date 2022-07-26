@@ -1,10 +1,22 @@
+from django.db.models import Sum, Count
 from django.shortcuts import render
 from django.views import View
+
+from .models import Donation, Institution
+from django.db.models import F
 
 
 class LandingPage(View):
     def get(self, request):
-        return render(request, 'mytemplates/index.html')
+        total_donated_quantity = Donation.objects.all().aggregate(Sum('quantity'))
+        insitutions = Institution.objects.all()
+        donated_institutions = insitutions.filter(donation__quantity__gt=0).distinct().count()
+        context = {
+            'total_donated_quantity': total_donated_quantity,
+            'institutions': insitutions,
+            'donated_institutions': donated_institutions
+        }
+        return render(request, 'mytemplates/index.html', context)
 
 
 class AddDonation(View):

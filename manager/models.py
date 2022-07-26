@@ -8,7 +8,7 @@ class Category(models.Model):
 
 class Institution(models.Model):
     TYPES = {
-        (1, 'funcacja'),
+        (1, 'fundacja'),
         (2, 'organizacja pozarządowa'),
         (3, 'zbiórka lokalna'),
     }
