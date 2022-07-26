@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'manager'
+    'users',
+    'manager',
 ]
 
 MIDDLEWARE = [
@@ -105,11 +106,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pl'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Warsaw'
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 
@@ -124,6 +127,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+AUTH_USER_MODEL = 'users.User'
+
+LOGIN_REDIRECT_URL = 'landing-page'
+
+LOGOUT_REDIRECT_URL = 'login-page'
 
 try:
     from charity_donation_project.local_settings import DATABASES

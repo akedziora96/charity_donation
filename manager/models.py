@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -31,5 +32,6 @@ class Donation(models.Model):
     pick_up_time = models.TimeField(verbose_name='czas odbioru')
     pick_up_comment = models.DateTimeField(verbose_name='data komentarza')
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, blank=True, null=True, default=None, verbose_name='użytkownik'
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        blank=True, null=True, default=None, verbose_name='użytkownik'
     )

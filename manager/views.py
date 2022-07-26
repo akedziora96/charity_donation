@@ -1,9 +1,18 @@
+from django.contrib.auth.views import LoginView
 from django.db.models import Sum, Count
-from django.shortcuts import render
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
 from django.views import View
 
+from manager.forms import UserRegisterForm
+from users.forms import CustomUserCreationForm, CustomAuthenticationForm
+from users.models import User
 from .models import Donation, Institution
 from django.db.models import F
+
+
+from django.shortcuts import resolve_url
 
 
 class LandingPage(View):
@@ -24,15 +33,31 @@ class AddDonation(View):
         return render(request, 'mytemplates/form.html')
 
 
-class Login(View):
-    def get(self, request):
-        return render(request, 'mytemplates/login.html')
+class Login(LoginView):
+    template_name = 'mytemplates/login.html'
+    form_class = CustomAuthenticationForm
+
+    # def post(self, request, *args, **kwargs):
+    #     form = CustomAuthenticationForm(request.POST)
+    #     if form.redirect:
+    #         return redirect('register')
 
 
 class Register(View):
     def get(self, request):
-        return render(request, 'mytemplates/register.html')
+        form = CustomUserCreationForm()
+        return render(request, 'mytemplates/register.html', {'form': form})
 
+    def post(self, request):
+        form = CustomUserCreationForm(request.POST)
+
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data.get('password1'))
+            user.save()
+            return redirect('login')
+
+        return render(request, 'mytemplates/register.html', {'form': form})
 
 
 
