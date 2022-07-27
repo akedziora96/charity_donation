@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.db.models import Sum, Count
 from django.http import HttpResponse
@@ -28,7 +29,9 @@ class LandingPage(View):
         return render(request, 'mytemplates/index.html', context)
 
 
-class AddDonation(View):
+class AddDonation(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def get(self, request):
         return render(request, 'mytemplates/form.html')
 

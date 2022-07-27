@@ -131,7 +131,7 @@ AUTH_USER_MODEL = 'users.User'
 
 LOGIN_REDIRECT_URL = 'landing-page'
 
-LOGOUT_REDIRECT_URL = 'login-page'
+LOGOUT_REDIRECT_URL = 'landing-page'
 
 try:
     from charity_donation_project.local_settings import DATABASES

@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from manager import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,6 +24,7 @@ urlpatterns = [
     path('add_donation/', views.AddDonation.as_view(), name='add-donation'),
     path('login/', views.Login.as_view(), name='login'),
     path('register/', views.Register.as_view(), name='register'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout-page'),
 
     # path('form/', views.form),
     # path('form_confirmation/', views.form_confirmation),
