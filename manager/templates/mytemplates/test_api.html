@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{#<script src="{% static 'js/jquery-3.4.1.min.js' %}"></script>#}
+{#<script src="{% static 'js/institution_api.js' %}"></script>#}
+{% block content %}
+<ul class="categories">
+    {% for object in categories %}
+        <li class="type">{{ object }} <input type="checkbox" class="checkboxy" value="{{ object.id }}"> </li>
+    {% endfor %}
+</ul>
+
+<br><br>
+    <div data-step="3">
+        <label>
+        </label>
+    </div>
+{% endblock %}

@@ -4,34 +4,43 @@ from django.db import models
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=255, verbose_name='nazwa kategorii')
+    name = models.CharField(max_length=255, verbose_name='Nazwa kategorii')
+
+    def __str__(self):
+        return self.name
 
 
 class Institution(models.Model):
     TYPES = {
-        (1, 'fundacja'),
-        (2, 'organizacja pozarządowa'),
-        (3, 'zbiórka lokalna'),
+        (1, 'Fundacja'),
+        (2, 'Organizacja Pozarządowa'),
+        (3, 'Zbiórka Lokalna'),
     }
 
-    name = models.CharField(max_length=255, verbose_name='nazwa')
-    description = models.TextField(verbose_name='opis')
-    type = models.PositiveIntegerField(choices=TYPES, default=1, verbose_name='status organizacji')
-    categories = models.ManyToManyField(Category, verbose_name='kategorie artykułów przyjmowane przez organizację')
+    name = models.CharField(max_length=255, verbose_name='Nazwa')
+    description = models.TextField(verbose_name='Cel organizacji')
+    type = models.PositiveIntegerField(choices=TYPES, default=1, verbose_name='Status organizacji')
+    categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułów przyjmowane przez organizację')
+
+    def __str__(self):
+        return f'{self.get_type_display()} "{self.name}"'
 
 
 class Donation(models.Model):
     quantity = models.PositiveIntegerField()
-    categories = models.ManyToManyField(Category, verbose_name='kategorie artykułu')
-    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name='instytucja przyjmująca')
-    adress = models.CharField(max_length=100, verbose_name='adres zamieszkania')
-    phone_number = models.CharField(max_length=15, verbose_name='nr telefonu')
-    city = models.CharField(max_length=100, verbose_name='miasto')
-    zip_code = models.CharField(max_length=6, verbose_name='kod pocztowy')
-    pick_up_date = models.DateField(verbose_name='data odbioru')
-    pick_up_time = models.TimeField(verbose_name='czas odbioru')
-    pick_up_comment = models.DateTimeField(verbose_name='data komentarza')
+    categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułu')
+    institution = models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name='Instytucja przyjmująca')
+    adress = models.CharField(max_length=100, verbose_name='Adres zamieszkania')
+    phone_number = models.CharField(max_length=15, verbose_name='Nr telefonu')
+    city = models.CharField(max_length=100, verbose_name='Miasto')
+    zip_code = models.CharField(max_length=6, verbose_name='Kod pocztowy')
+    pick_up_date = models.DateField(verbose_name='Data odbioru')
+    pick_up_time = models.TimeField(verbose_name='Czas odbioru')
+    pick_up_comment = models.DateTimeField(verbose_name='Data komentarza')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        blank=True, null=True, default=None, verbose_name='użytkownik'
+        blank=True, null=True, default=None, verbose_name='Użytkownik'
     )
+
+    def __str__(self):
+        return self.id
