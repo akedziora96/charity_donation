@@ -21,10 +21,14 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.LandingPage.as_view(), name='landing-page'),
+
     path('add_donation/', views.AddDonation.as_view(), name='add-donation'),
+    path('get_institution_api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
+
     path('login/', views.Login.as_view(), name='login'),
     path('register/', views.Register.as_view(), name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout-page'),
+
 
     # path('form/', views.form),
     # path('form_confirmation/', views.form_confirmation),

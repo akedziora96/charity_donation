@@ -21,13 +21,23 @@
     <section id="stats" class="stats">
         <div class="container container--85">
             <div class="stats--item">
-                <em>{{ total_donated_quantity.quantity__sum }}</em>
-                <h3>Oddanych worków</h3>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius est beatae, quod accusamus illum tempora!</p>
-            </div>
+                {% with  total_donated_quantity.quantity__sum as total_donated_quantity  %}
+                    {% if total_donated_quantity is not None %}
+                        <em>{{ total_donated_quantity }}</em>
+                    {% else %}
+                        <em>0</em>
+                    {% endif %}
+                        <h3>Oddanych worków</h3>
+                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius est beatae, quod accusamus illum tempora!</p>
+                    </div>
+                {% endwith %}
 
             <div class="stats--item">
-                <em>{{ donated_institutions }}</em>
+                {% if donated_institutions > 0 %}
+                    <em>{{ donated_institutions }}</em>
+                {% else %}
+                    <em>0</em>
+                {% endif %}
                 <h3>Wspartych organizacji</h3>
                 <p>Lorem ipsum dolor sit amet consectetur, adipisicing elit. Laboriosam magnam, sint nihil cupiditate quas quam.</p>
             </div>
@@ -89,13 +99,15 @@
                 {% for foundation in institutions|get_by_type:1 %}
                         <li>
                             <div class="col">
-                                <div class="title">{{ foundation.name }}</div>
+                                <div class="title">"{{ foundation.name }}"</div>
                                 <div class="subtitle">{{ foundation.description }}</div>
                             </div>
 
                             <div class="col"><div class="text">{{ foundation|get_categories_names }}</div></div>
                         </li>
                 {% endfor %}
+                    </ul>
+
 
 
             <!-- Pagination

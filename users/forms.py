@@ -51,10 +51,5 @@ class CustomAuthenticationForm(AuthenticationForm):
         )
         self.redirect = False
 
-    # def clean(self):
-    #     email = self.cleaned_data.get('username')
-    #     if not User.objects.filter(email=email).exists():
-    #         x = 'test'
-    #         self.redirect = True
-    #     return super().cleaned_data
+
 

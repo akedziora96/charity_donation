@@ -1,7 +1,10 @@
+import json
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
-from django.db.models import Sum, Count
-from django.http import HttpResponse
+from django.core.serializers import serialize
+from django.db.models import Sum, Count, Q
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -9,11 +12,13 @@ from django.views import View
 from manager.forms import UserRegisterForm
 from users.forms import CustomUserCreationForm, CustomAuthenticationForm
 from users.models import User
-from .models import Donation, Institution
+from .models import Donation, Institution, Category
 from django.db.models import F
 
 
 from django.shortcuts import resolve_url
+
+from django.core import serializers
 
 
 class LandingPage(View):
@@ -33,17 +38,27 @@ class AddDonation(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
 
     def get(self, request):
-        return render(request, 'mytemplates/form.html')
+        categories = Category.objects.all()
+        insitutions = None
+        print(insitutions)
+        return render(request, 'mytemplates/form.html', {'categories': categories, 'insitutions': insitutions})
+
+
+class GetInstitutionApiView(View):
+    def get(self, request):
+        category_ids = request.GET.getlist('id')
+
+        institutions = Institution.objects.all()#filter(categories__in=category_ids).distinct()
+        for category_id in category_ids:
+            institutions = institutions.filter(categories__id=category_id)
+
+        data = serializers.serialize('json', institutions)
+        return HttpResponse(data, content_type="application/json")
 
 
 class Login(LoginView):
     template_name = 'mytemplates/login.html'
     form_class = CustomAuthenticationForm
-
-    # def post(self, request, *args, **kwargs):
-    #     form = CustomAuthenticationForm(request.POST)
-    #     if form.redirect:
-    #         return redirect('register')
 
 
 class Register(View):

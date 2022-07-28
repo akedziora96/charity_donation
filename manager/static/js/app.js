@@ -191,13 +191,48 @@ document.addEventListener("DOMContentLoaded", function() {
     /**
      * All events that are happening in form
      */
+
+
+
     events() {
       // Next step
       this.$next.forEach(btn => {
         btn.addEventListener("click", e => {
           e.preventDefault();
           this.currentStep++;
-          this.updateForm();
+
+    const ids = get_checked_chexboxes();
+
+    if (ids.length === 0) {
+      this.currentStep--
+
+    }
+
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append("id", id))
+
+    const address = '/get_institution_api?'+ params.toString();
+    fetch(address)
+        .then(response => response.json())
+        .then(data => {
+            if(isEmpty(data)) {
+              console.log(data)
+              this.currentStep--
+                return false
+            }
+            else {
+              console.log(data)
+              this.updateForm();
+                return true
+
+            }
+        })
+
+
+          if (this.currentStep == 2)
+          {
+            show_id()
+          }
         });
       });
 
@@ -207,6 +242,10 @@ document.addEventListener("DOMContentLoaded", function() {
           e.preventDefault();
           this.currentStep--;
           this.updateForm();
+          if (this.currentStep == 1)
+          {
+            remove_all_institutions_html()
+          }
         });
       });
 
@@ -237,6 +276,12 @@ document.addEventListener("DOMContentLoaded", function() {
       // TODO: get data from inputs and show them in summary
     }
 
+
+    // validation(e) {
+    //   this.$form.querySelectorAll('#category_checkbox').addEventListener("click", function (e) {
+    //     console.log('test')
+    //   })
+    // }
     /**
      * Submit form
      *
@@ -252,4 +297,101 @@ document.addEventListener("DOMContentLoaded", function() {
   if (form !== null) {
     new FormSteps(form);
   }
+
+  // document.querySelector('#category-submit').disabled = true
+  // document.querySelectorAll('#category_checkbox').
+  // forEach(checkbox => {
+  //   checkbox.addEventListener('click', evt => {
+  //     (check_if_data(evt));
+  //   })
+  // })
+
 });
+
+
+//POBIERANIE API
+
+function show_id()
+{
+    const ids = get_checked_chexboxes();
+    console.log(ids)
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append("id", id))
+
+    const address = '/get_institution_api?'+ params.toString();
+    fetch(address)
+        .then(response => response.json())
+        .then(data => data.forEach(inst => {
+            create_choice_html(inst)
+        }))
+}
+
+
+
+function isEmpty(obj) {
+    return Object.keys(obj).length === 0;
+}
+
+function get_checked_chexboxes()
+{
+    const markedCheckbox = document.querySelectorAll('input[type="checkbox"]:checked');
+    const ids = [];
+    markedCheckbox.forEach(box => ids.push(box.value));
+    return ids;
+}
+
+
+function create_choice_html (institution) {
+
+    const type_names = {
+        1: 'Fundacja',
+        2: 'Organizacja Pozarządowa',
+        3: 'Lokalna Zbiórka'
+    }
+
+    let div = document.querySelector('#institutions');
+    let button = document.querySelector('#form_button');
+
+    const maindiv = document.createElement("div")
+    maindiv.setAttribute("class", "form-group form-group--checkbox");
+    maindiv.setAttribute('id', 'single-institution');
+    div.insertBefore(maindiv, button)
+
+    const label = document.createElement("label")
+    maindiv.appendChild(label)
+
+    const input = document.createElement("input")
+    input.setAttribute("type", "radio")
+    input.setAttribute("name", "organization")
+    input.setAttribute("value", institution.pk)
+    label.appendChild(input)
+
+    const span1 = document.createElement("span")
+    span1.setAttribute("class", "checkbox radio")
+    label.appendChild(span1)
+
+    const span2 = document.createElement("span")
+    span2.setAttribute("class", "description")
+    label.appendChild(span2)
+
+    const div1 = document.createElement("div")
+    div1.setAttribute("class", "title")
+    div1.innerHTML = `${type_names[institution.fields.type]} "${institution.fields.name}"`
+    span2.appendChild(div1)
+
+    const div2 = document.createElement("div")
+    div2.setAttribute("class", "subtitle")
+    div2.innerHTML = `Cel i misja: ${institution.fields.description}`
+    span2.appendChild(div2)
+}
+
+function remove_all_institutions_html () {
+  document.querySelectorAll('#single-institution').forEach(div => {div.remove()})
+}
+
+function validate_step() {
+  console.log(get_checked_chexboxes())
+  if(get_checked_chexboxes().length == 0) {
+    document.querySelector('#category-submit').disabled = true
+  }
+}
