@@ -198,41 +198,60 @@ document.addEventListener("DOMContentLoaded", function() {
       // Next step
       this.$next.forEach(btn => {
         btn.addEventListener("click", e => {
-          e.preventDefault();
-          this.currentStep++;
+            e.preventDefault();
+            this.currentStep++;
 
-    const ids = get_checked_chexboxes();
+            /* Step 1 */
+            if(this.currentStep === 2) {
+                const ids = get_checked_chexboxes();
+                if (ids.length === 0) {
+                    this.currentStep--
+                }
 
-    if (ids.length === 0) {
-      this.currentStep--
-
-    }
-
-    const params = new URLSearchParams();
-    ids.forEach(id => params.append("id", id))
-
-    const address = '/get_institution_api?'+ params.toString();
-    fetch(address)
-        .then(response => response.json())
-        .then(data => {
-            if(isEmpty(data)) {
-              console.log(data)
-              this.currentStep--
-                return false
+            fetch(fetchAdress()).then(response => response.json()).then(data => {
+                    if(isEmpty(data)) {
+                      this.currentStep--
+                    }
+                    else {
+                        this.updateForm();
+                        show_id();
+                        console.log(ids)
+                        getCategoriesNames(ids)
+                    }
+                })
             }
-            else {
-              console.log(data)
-              this.updateForm();
-                return true
 
+            /* Step 2 */
+            if (this.currentStep === 3) {
+                if (checkBagsQuantity()) {
+                  this.updateForm()
+                } else {
+                    this.currentStep--
+                }
             }
-        })
 
+            /* Step 3 */
+            if (this.currentStep === 4) {
+                const radio_id = getRadio()
+                if(radio_id.length ===0 ) {
+                  this.currentStep--
+                }
+                else {
+                    this.updateForm()
+                    getInstitutionName(radio_id)
+                }
+            }
 
-          if (this.currentStep == 2)
-          {
-            show_id()
-          }
+            /* Step 4 */
+            if (this.currentStep === 5) {
+                  this.updateForm()
+                }
+
+            /* Step 5 - form submit */
+            if (this.currentStep === 6) {
+
+                }
+
         });
       });
 
@@ -242,7 +261,7 @@ document.addEventListener("DOMContentLoaded", function() {
           e.preventDefault();
           this.currentStep--;
           this.updateForm();
-          if (this.currentStep == 1)
+          if (this.currentStep === 1)
           {
             remove_all_institutions_html()
           }
@@ -277,11 +296,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 
-    // validation(e) {
-    //   this.$form.querySelectorAll('#category_checkbox').addEventListener("click", function (e) {
-    //     console.log('test')
-    //   })
-    // }
     /**
      * Submit form
      *
@@ -298,29 +312,13 @@ document.addEventListener("DOMContentLoaded", function() {
     new FormSteps(form);
   }
 
-  // document.querySelector('#category-submit').disabled = true
-  // document.querySelectorAll('#category_checkbox').
-  // forEach(checkbox => {
-  //   checkbox.addEventListener('click', evt => {
-  //     (check_if_data(evt));
-  //   })
-  // })
-
 });
 
 
 //POBIERANIE API
 
-function show_id()
-{
-    const ids = get_checked_chexboxes();
-    console.log(ids)
-    const params = new URLSearchParams();
-    ids.forEach(id => params.append("id", id))
-
-    const address = '/get_institution_api?'+ params.toString();
-    fetch(address)
-        .then(response => response.json())
+function show_id() {
+    fetch(fetchAdress()).then(response => response.json())
         .then(data => data.forEach(inst => {
             create_choice_html(inst)
         }))
@@ -361,6 +359,7 @@ function create_choice_html (institution) {
     maindiv.appendChild(label)
 
     const input = document.createElement("input")
+    input.setAttribute("id", "institution_radio_checkbox")
     input.setAttribute("type", "radio")
     input.setAttribute("name", "organization")
     input.setAttribute("value", institution.pk)
@@ -389,9 +388,48 @@ function remove_all_institutions_html () {
   document.querySelectorAll('#single-institution').forEach(div => {div.remove()})
 }
 
-function validate_step() {
-  console.log(get_checked_chexboxes())
-  if(get_checked_chexboxes().length == 0) {
-    document.querySelector('#category-submit').disabled = true
-  }
+function isInt(value) {
+  return !isNaN(value) &&
+         parseInt(Number(value)) == value &&
+         !isNaN(parseInt(value, 10));
+}
+
+function checkBagsQuantity() {
+    const bags = document.querySelector('#bags_input').value
+    return (isInt(bags) && bags > 0)
+}
+
+function fetchAdress() {
+    const ids = get_checked_chexboxes();
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append("id", id))
+    return '/get_institution_api?' + params.toString()
+}
+
+function getRadio() {
+    let markedCheckbox = document.querySelectorAll('input[type="radio"]:checked');
+    let radio_id = [];
+    markedCheckbox.forEach(box => radio_id.push(box.value));
+    return radio_id
+}
+
+function getInstitutionName(id) {
+    const div = document.querySelector('div#institutions')
+    const input = div.querySelector(`input[value="${id}"]`)
+    const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
+    const institutionSummary = document.querySelector('#institution_summary')
+    institutionSummary.innerHTML = `${institutionName}`
+}
+
+function getCategoriesNames(ids) {
+    const div = document.querySelector('div[data-step="1"]')
+    console.log(div)
+    const checked_categories = []
+    ids.forEach(id => {
+        checked_categories.push(div.querySelector(`input[value="${id}"]`))
+    })
+    console.log(checked_categories)
+    // const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
+    // const institutionSummary = document.querySelector('#institution_summary')
+    // institutionSummary.innerHTML = `${institutionName}`
 }

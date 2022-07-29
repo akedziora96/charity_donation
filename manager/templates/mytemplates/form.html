@@ -58,7 +58,8 @@
         <div class="form--steps-container">
             <div class="form--steps-counter">Krok <span>1</span>/5</div>
 
-            <form action="form-confirmation.html" method="post">
+            <form action="" method="post" name="myForm">
+            {% csrf_token %}
                 <!-- STEP 1: class .active is switching steps -->
                 <div data-step="1" class="active">
                     <h3>Zaznacz co chcesz oddać:</h3>
@@ -85,7 +86,7 @@
                     <div class="form-group form-group--inline">
                         <label>
                             Liczba 60l worków:
-                            <input type="number" name="bags" step="1" min="1" />
+                            <input id="bags_input" type="number" name="bags" step="1" min="1" />
                         </label>
                     </div>
 
@@ -176,7 +177,7 @@
 
                                 <li>
                                     <span class="icon icon-hand"></span>
-                                    <span class="summary--text"
+                                    <span id="institution_summary" class="summary--text"
                                     >Dla fundacji "Mam marzenie" w Warszawie</span
                                     >
                                 </li>
@@ -207,7 +208,7 @@
 
                     <div class="form-group form-group--buttons">
                         <button type="button" class="btn prev-step">Wstecz</button>
-                        <button type="submit" class="btn">Potwierdzam</button>
+                        <button type="submit" class="btn" onClick="document.myForm.submit();return false">Potwierdzam</button>
                     </div>
                 </div>
             </form>
