@@ -18,8 +18,6 @@ from django.db.models import F
 
 from django.shortcuts import resolve_url
 
-from django.core import serializers
-
 
 class LandingPage(View):
     def get(self, request):
@@ -43,16 +41,22 @@ class AddDonation(LoginRequiredMixin, View):
         print(insitutions)
         return render(request, 'mytemplates/form.html', {'categories': categories, 'insitutions': insitutions})
 
+    def post(self, request):
+        print(request.POST.getlist('categories'))
+        print(request.POST.get('bags'))
+        print(request.POST.get('organization'))
+        return redirect('landing-page')
+
 
 class GetInstitutionApiView(View):
     def get(self, request):
         category_ids = request.GET.getlist('id')
 
-        institutions = Institution.objects.all()#filter(categories__in=category_ids).distinct()
+        institutions = Institution.objects.all()
         for category_id in category_ids:
             institutions = institutions.filter(categories__id=category_id)
 
-        data = serializers.serialize('json', institutions)
+        data = serialize('json', institutions)
         return HttpResponse(data, content_type="application/json")
 
 
