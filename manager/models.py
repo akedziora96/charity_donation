@@ -1,10 +1,15 @@
 from django.conf import settings
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db import models
 
 
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name='Nazwa kategorii')
+
+    class Meta:
+        verbose_name = _('Kategoria')
+        verbose_name_plural = _('Kategorie')
 
     def __str__(self):
         return self.name
@@ -22,12 +27,16 @@ class Institution(models.Model):
     type = models.PositiveIntegerField(choices=TYPES, default=1, verbose_name='Status organizacji')
     categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułów przyjmowane przez organizację')
 
+    class Meta:
+        verbose_name = _('Organizacja')
+        verbose_name_plural = _('Organizacje')
+
     def __str__(self):
         return f'{self.get_type_display()} "{self.name}"'
 
 
 class Donation(models.Model):
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(verbose_name='Ilość worków')
     categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułu')
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name='Instytucja przyjmująca')
     address = models.CharField(max_length=100, verbose_name='Adres zamieszkania')
@@ -41,6 +50,10 @@ class Donation(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         blank=True, null=True, default=None, verbose_name='Użytkownik'
     )
+
+    class Meta:
+        verbose_name = _('Darowizna')
+        verbose_name_plural = _('Darowizny')
 
     def __str__(self):
         return f'#{self.id}'
