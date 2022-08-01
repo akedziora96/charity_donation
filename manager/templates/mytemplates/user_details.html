@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load filters %}
+
+{% block title %}Zaloguj się{% endblock %}
+
+{% block content %}
+    <header>
+        {% include "navbar.html" %}
+    </header>
+
+    <section>
+        <h2 >Panel użytkownika</h2>
+        <div style="display: flex; flex-direction: column">
+            <div style="width: 100%; display: flex; flex-direction: column">
+                <h3>Twoje dane:</h3>
+                <p>Imię: {{ user.first_name }}</p>
+                <p>Nazwisko: {{ user.last_name }}</p>
+                <p>E-mail: {{ user.email }}</p>
+            </div>
+            <div class="" style="width: 100%; text-align:center; justify-content: center; display: flex; flex-direction: column">
+                <h3 style="font-size: 20px">Darowizny przekazane przez Ciebię:</h3>
+                <table class="" style="border-spacing: 0 15px; justify-content: left;">
+                    {% for donation in donation_list %}
+                        <tr style="justify-content: left;">
+                            <td style="font-size: 15px">{{ donation.institution }}</td>
+                            <td style="font-size: 15px">{{ donation.organization }}</td>
+                            <td style="font-size: 15px">{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
+                            <td style="font-size: 15px">{{ donation.quantity }} worków</td>
+                            <td style="font-size: 15px">{{ donation|get_categories_names }}</td>
+                        </tr>
+                        <br>
+                    {% endfor %}
+                </table>
+            </div>
+            </div>
+    </section>
+{% endblock %}
