@@ -8,6 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.generic import ListView
 
 from manager.forms import UserRegisterForm, DonationAddForm
 from users.forms import CustomUserCreationForm, CustomAuthenticationForm
@@ -93,7 +94,6 @@ class Register(UserPassesTestMixin, View):
             return redirect('login')
 
         return render(request, 'mytemplates/register.html', {'form': form})
-
 
 
 
