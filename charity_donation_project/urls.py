@@ -23,6 +23,7 @@ urlpatterns = [
     path('', views.LandingPage.as_view(), name='landing-page'),
 
     path('add_donation/', views.AddDonation.as_view(), name='add-donation'),
+    path('add_donation/confirmation/', views.ConfirmationView.as_view(), name='donation-confirmation'),
     path('get_institution_api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
 
     path('login/', views.Login.as_view(), name='login'),
