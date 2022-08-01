@@ -19,7 +19,7 @@ from manager import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='admin-page'),
     path('', views.LandingPage.as_view(), name='landing-page'),
 
     path('add_donation/', views.AddDonation.as_view(), name='add-donation'),
