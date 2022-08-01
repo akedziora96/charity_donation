@@ -224,7 +224,8 @@ document.addEventListener("DOMContentLoaded", function() {
             /* Step 2 */
             if (this.currentStep === 3) {
                 if (checkBagsQuantity()) {
-                  this.updateForm()
+                    this.updateForm()
+                    getBagsQuantity()
                 } else {
                     this.currentStep--
                 }
@@ -244,8 +245,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
             /* Step 4 */
             if (this.currentStep === 5) {
-                  this.updateForm()
+                const address = getAdress()
+                const date = getDate()
+
+                if (address && date) {
+                    this.updateForm()
+                    createAddressDateSummary(address, date)
+                } else {
+                    this.currentStep--
                 }
+            }
 
             /* Step 5 - form submit */
             if (this.currentStep === 6) {
@@ -264,6 +273,9 @@ document.addEventListener("DOMContentLoaded", function() {
           if (this.currentStep === 1)
           {
             remove_all_institutions_html()
+          }
+          if (this.currentStep === 4) {
+              removeAddressDateSummary()
           }
         });
       });
@@ -361,7 +373,7 @@ function create_choice_html (institution) {
     const input = document.createElement("input")
     input.setAttribute("id", "institution_radio_checkbox")
     input.setAttribute("type", "radio")
-    input.setAttribute("name", "organization")
+    input.setAttribute("name", "institution")
     input.setAttribute("value", institution.pk)
     label.appendChild(input)
 
@@ -399,6 +411,21 @@ function checkBagsQuantity() {
     return (isInt(bags) && bags > 0)
 }
 
+function getBagsQuantity() {
+    const bags = document.querySelector('#bags_input').value
+    const categoriesSummary = document.querySelector('#categories-summary')
+    let bagsDeclination = 'worek'
+
+    if (bags > 1 && bags < 5) {
+        bagsDeclination = 'worki'
+    } else if (bags >= 5) {
+        bagsDeclination = 'worków'
+    }
+
+    categoriesSummary.innerHTML = `${bags} ${bagsDeclination} artykułów kategorii: ${categoriesSummary.innerHTML}`
+}
+
+
 function fetchAdress() {
     const ids = get_checked_chexboxes();
     const params = new URLSearchParams();
@@ -423,13 +450,74 @@ function getInstitutionName(id) {
 
 function getCategoriesNames(ids) {
     const div = document.querySelector('div[data-step="1"]')
-    console.log(div)
     const checked_categories = []
     ids.forEach(id => {
         checked_categories.push(div.querySelector(`input[value="${id}"]`))
     })
-    console.log(checked_categories)
-    // const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
-    // const institutionSummary = document.querySelector('#institution_summary')
-    // institutionSummary.innerHTML = `${institutionName}`
+    const categoriesNames = []
+    checked_categories.forEach(input => {
+        categoriesNames.push(input.nextElementSibling.nextElementSibling.innerHTML)
+    })
+    const categoriesSummary = document.querySelector('#categories-summary')
+    categoriesSummary.innerHTML = categoriesNames.join(', ').toLowerCase()
+
 }
+
+function getAdress() {
+    const adress = document.querySelector('[name="address"]').value
+    console.log(adress)
+    const city = document.querySelector('[name="city"]').value
+        console.log(city)
+    const postcode = document.querySelector('[name="zip_code"]').value
+        console.log(postcode)
+    const phone = document.querySelector('[name="phone_number"]').value
+        console.log(phone)
+
+    if (adress && city && postcode && phone) {
+        return [adress, city, postcode, phone]
+    } else {
+        return false
+    }
+
+}
+
+function getDate() {
+    const date = document.querySelector('[name="pick_up_date"]').value
+    const time = document.querySelector('[name="pick_up_time"]').value
+    const moreInfo = document.querySelector('[name="pick_up_comment"]').value
+
+    if (date && time && moreInfo) {
+        return [date, time, moreInfo]
+    } else {
+        return false
+    }
+}
+
+function createAddressDateSummary(address, date) {
+    const div = document.querySelector('div[data-step="5"]')
+    const addressList = div.querySelector('#address-list')
+    const dateList = div.querySelector('#date-list')
+
+    address.forEach(item => {
+        let li = document.createElement('li')
+        li.innerHTML = item
+        addressList.appendChild(li)
+    })
+
+    date.forEach(item => {
+        let li = document.createElement('li')
+        li.innerHTML = item
+        dateList.appendChild(li)
+    })
+}
+
+
+function removeAddressDateSummary() {
+    const div = document.querySelector('div[data-step="5"]')
+    const addressList = div.querySelector('#address-list')
+    const dateList = div.querySelector('#date-list')
+
+    Array.from(addressList.children).forEach(li => li.remove())
+    Array.from(dateList.children).forEach(li => li.remove())
+}
+

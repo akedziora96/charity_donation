@@ -30,17 +30,17 @@ class Donation(models.Model):
     quantity = models.PositiveIntegerField()
     categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułu')
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name='Instytucja przyjmująca')
-    adress = models.CharField(max_length=100, verbose_name='Adres zamieszkania')
+    address = models.CharField(max_length=100, verbose_name='Adres zamieszkania')
     phone_number = models.CharField(max_length=15, verbose_name='Nr telefonu')
     city = models.CharField(max_length=100, verbose_name='Miasto')
     zip_code = models.CharField(max_length=6, verbose_name='Kod pocztowy')
     pick_up_date = models.DateField(verbose_name='Data odbioru')
     pick_up_time = models.TimeField(verbose_name='Czas odbioru')
-    pick_up_comment = models.DateTimeField(verbose_name='Data komentarza')
+    pick_up_comment = models.TextField(verbose_name='Komentarz')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         blank=True, null=True, default=None, verbose_name='Użytkownik'
     )
 
     def __str__(self):
-        return self.id
+        return f'#{self.id}'

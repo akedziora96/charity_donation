@@ -1,6 +1,6 @@
 import json
 
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView
 from django.core.serializers import serialize
 from django.db.models import Sum, Count, Q
@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 
-from manager.forms import UserRegisterForm
+from manager.forms import UserRegisterForm, DonationAddForm
 from users.forms import CustomUserCreationForm, CustomAuthenticationForm
 from users.models import User
 from .models import Donation, Institution, Category
@@ -37,15 +37,18 @@ class AddDonation(LoginRequiredMixin, View):
 
     def get(self, request):
         categories = Category.objects.all()
-        insitutions = None
-        print(insitutions)
-        return render(request, 'mytemplates/form.html', {'categories': categories, 'insitutions': insitutions})
+        return render(request, 'mytemplates/form.html', {'categories': categories})
 
     def post(self, request):
-        print(request.POST.getlist('categories'))
-        print(request.POST.get('bags'))
-        print(request.POST.get('organization'))
-        return redirect('landing-page')
+        form = DonationAddForm(request.POST)
+
+        if form.is_valid():
+            donation = form.save(commit=False)
+            donation.user = request.user
+            donation.save()
+            return redirect('donation-confirmation')
+
+        return redirect('add-donation')
 
 
 class GetInstitutionApiView(View):
@@ -60,12 +63,22 @@ class GetInstitutionApiView(View):
         return HttpResponse(data, content_type="application/json")
 
 
+class ConfirmationView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
+    def get(self, request):
+        return render(request, 'mytemplates/form_confirmation.html')
+
+
 class Login(LoginView):
     template_name = 'mytemplates/login.html'
     form_class = CustomAuthenticationForm
 
 
-class Register(View):
+class Register(UserPassesTestMixin, View):
+    def test_func(self):
+        return not self.request.user.is_authenticated
+
     def get(self, request):
         form = CustomUserCreationForm()
         return render(request, 'mytemplates/register.html', {'form': form})
