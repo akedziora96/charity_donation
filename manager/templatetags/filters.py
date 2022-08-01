@@ -4,8 +4,8 @@ register = template.Library()
 
 
 @register.filter
-def get_categories_names(institution):
-    return ", ".join(institution.categories.values_list('name', flat=True))
+def get_categories_names(object_):
+    return ", ".join(object_.categories.values_list('name', flat=True))
 
 
 @register.filter

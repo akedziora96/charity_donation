@@ -47,6 +47,10 @@ class AddDonation(LoginRequiredMixin, View):
             donation = form.save(commit=False)
             donation.user = request.user
             donation.save()
+
+            categories = form.cleaned_data.get('categories')
+            donation.categories.set(categories)
+            donation.save()
             return redirect('donation-confirmation')
 
         return redirect('add-donation')
@@ -96,7 +100,12 @@ class Register(UserPassesTestMixin, View):
         return render(request, 'mytemplates/register.html', {'form': form})
 
 
+class UserDetailsView(ListView):
+    model = Donation
+    template_name = 'mytemplates/user_details.html'
 
+    def get_queryset(self):
+        return Donation.objects.filter(user=self.request.user)
 
 
 
