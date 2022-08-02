@@ -8,10 +8,10 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, UpdateView
 
 from manager.forms import UserRegisterForm, DonationAddForm
-from users.forms import CustomUserCreationForm, CustomAuthenticationForm
+from users.forms import CustomUserCreationForm, CustomAuthenticationForm, CustomUserChangeForm
 from users.models import User
 from .models import Donation, Institution, Category
 from django.db.models import F
@@ -124,7 +124,14 @@ class GetDonationApiView(View):
         return HttpResponse(data, content_type="application/json")
 
 
+class UserEditView(UpdateView):
+    model = User
 
+    form_class = CustomUserChangeForm
+    template_name = 'mytemplates/user_edit.html'
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(User, pk=self.request.user.pk)
 
 
 
