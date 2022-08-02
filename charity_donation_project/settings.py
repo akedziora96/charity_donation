@@ -137,3 +137,4 @@ try:
     from charity_donation_project.local_settings import DATABASES
 except ModuleNotFoundError:
     print("No database configuration!")
+

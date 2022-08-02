@@ -5,7 +5,7 @@ from django.contrib.auth.views import LoginView
 from django.core.serializers import serialize
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView
@@ -106,6 +106,22 @@ class UserDetailsView(ListView):
 
     def get_queryset(self):
         return Donation.objects.filter(user=self.request.user)
+
+
+class GetDonationApiView(View):
+    def get(self, request):
+        donation = get_object_or_404(Donation, id=request.GET.get('id'))
+
+        if not donation.is_taken:
+            donation.is_taken = True
+        else:
+            donation.is_taken = False
+        donation.save()
+
+        donations = Donation.objects.filter(user=self.request.user)
+
+        data = serialize('json', donations, use_natural_foreign_keys=True)
+        return HttpResponse(data, content_type="application/json")
 
 
 

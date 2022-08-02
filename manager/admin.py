@@ -9,15 +9,15 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(Institution)
-class CategoryAdmin(admin.ModelAdmin):
+class InstitutionAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', 'description')
     list_filter = ('name', 'type', 'description')
     search_fields = ('name',)
 
 
 @admin.register(Donation)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time')
-    list_filter = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time')
+class DonationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
+    list_filter = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
     search_fields = ('user', 'institution')
     date_hierarchy = 'pick_up_date'

@@ -26,6 +26,7 @@ urlpatterns = [
     path('add_donation/confirmation/', views.ConfirmationView.as_view(), name='donation-confirmation'),
     path('get_institution_api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
     path('user_details/', views.UserDetailsView.as_view(), name='user-details'),
+    path('get_donation_api/', views.GetDonationApiView.as_view(), name='donation-api'),
 
     path('login/', views.Login.as_view(), name='login'),
     path('register/', views.Register.as_view(), name='register'),

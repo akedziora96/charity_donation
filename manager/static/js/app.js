@@ -208,14 +208,14 @@ document.addEventListener("DOMContentLoaded", function() {
                     this.currentStep--
                 }
 
-            fetch(fetchAdress()).then(response => response.json()).then(data => {
+            const address = '/get_institution_api?'
+            fetch(fetchAdress(address)).then(response => response.json()).then(data => {
                     if(isEmpty(data)) {
                       this.currentStep--
                     }
                     else {
                         this.updateForm();
-                        show_id();
-                        console.log(ids)
+                        show_id(address, crateChoiceHtml);
                         getCategoriesNames(ids)
                     }
                 })
@@ -324,19 +324,117 @@ document.addEventListener("DOMContentLoaded", function() {
     new FormSteps(form);
   }
 
+  const table = document.querySelector('table#donations')
+  table.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener("change", () => createUserDonations(checkbox)
+      )
+  })
 });
 
 
 //POBIERANIE API
 
-function show_id() {
-    fetch(fetchAdress()).then(response => response.json())
-        .then(data => data.forEach(inst => {
-            create_choice_html(inst)
-        }))
+function createUserDonations(checkbox) {
+    fetch(`/get_donation_api/?id=${checkbox.value}`).then(response => response.json())
+        .then(data => {
+            const table = document.querySelector('table#donations')
+            table.querySelectorAll('tr').forEach(tr => {tr.remove()});
+            data.forEach(obj =>  {console.log(obj); createTr(data, obj)})
+        })
+}
+
+function createTr(data, obj) {
+    const tbody = document.querySelector('table#donations').firstElementChild
+    const tr = document.createElement('tr')
+    tr.setAttribute("style", "justify-content: left")
+    tbody.appendChild(tr)
+
+    const td1 = document.createElement('td')
+    td1.innerText = obj.fields.institution
+    if(obj.fields.is_taken) {
+        td1.setAttribute("style", "font-size: 15px; color:gray")
+    } else {
+        td1.setAttribute("style", "font-size: 15px;")
+    }
+    tr.appendChild(td1)
+
+    const td2 = document.createElement('td')
+    td2.innerText = `${formatDate(obj)} ${formatTime(obj)}`
+    if(obj.fields.is_taken) {
+        td2.setAttribute("style", "font-size: 15px; color:gray")
+    } else {
+        td2.setAttribute("style", "font-size: 15px;")
+    }
+    tr.appendChild(td2)
+
+    const td3 = document.createElement('td')
+    td3.innerText = `${obj.fields.quantity} worków`
+    if(obj.fields.is_taken) {
+        td3.setAttribute("style", "font-size: 15px; color:gray")
+    } else {
+        td3.setAttribute("style", "font-size: 15px;")
+    }
+    tr.appendChild(td3)
+
+    const td4 = document.createElement('td')
+    td4.innerText = cateoriesToString(obj)
+    if(obj.fields.is_taken) {
+        td4.setAttribute("style", "font-size: 15px; color:gray")
+    } else {
+        td4.setAttribute("style", "font-size: 15px;")
+    }
+    tr.appendChild(td4)
+
+    const td5 = document.createElement('td')
+    const input = document.createElement('input')
+    input.setAttribute("type", "checkbox")
+    input.setAttribute("name", "iz_taken")
+    input.setAttribute("value", obj.pk)
+
+    input.checked = !!obj.fields.is_taken;
+
+    input.addEventListener('change', () => createUserDonations(input))
+
+    td5.appendChild(input)
+    tr.appendChild(td5)
+}
+
+function cateoriesToString(obj) {
+    return (obj.fields.categories).join(', ')
+}
+
+function formatDate(obj) {
+    const months = {
+        '01': 'stycznia',
+        '02': 'lutego',
+        '03': 'marca',
+        '04': 'kwietnia',
+        '05': 'maja',
+        '06': 'czerwca',
+        '07': 'lipca',
+        '08': 'sierpnia',
+        '09': 'września',
+        '10': 'października',
+        '11': 'listopada',
+        '12': 'grudnia',
+
+    }
+    const originalDate = obj.fields.pick_up_date.split('-')
+    return `${parseInt(originalDate[2], 10)} ${months[originalDate[1]]} ${originalDate[0]}`
+}
+
+function formatTime(obj) {
+    const originalTime = obj.fields.pick_up_time.split(':')
+    return `${originalTime[0]}:${originalTime[1]}`
 }
 
 
+function show_id(address, func) {
+    fetch(fetchAdress(address)).then(response => response.json())
+        .then(data => data.forEach(obj => {
+            func(obj)
+        }))
+}
 
 function isEmpty(obj) {
     return Object.keys(obj).length === 0;
@@ -351,7 +449,7 @@ function get_checked_chexboxes()
 }
 
 
-function create_choice_html (institution) {
+function crateChoiceHtml(institution) {
 
     const type_names = {
         1: 'Fundacja',
@@ -426,11 +524,11 @@ function getBagsQuantity() {
 }
 
 
-function fetchAdress() {
+function fetchAdress(address) {
     const ids = get_checked_chexboxes();
     const params = new URLSearchParams();
     ids.forEach(id => params.append("id", id))
-    return '/get_institution_api?' + params.toString()
+    return  address + params.toString()
 }
 
 function getRadio() {
@@ -521,3 +619,43 @@ function removeAddressDateSummary() {
     Array.from(dateList.children).forEach(li => li.remove())
 }
 
+// function createUserDonations(data) {
+//     const table = document.querySelector('table#donations')
+//     table.querySelectorAll('tr').forEach(tr => {tr.remove()});
+//     data.forEach(obj =>  createTr(data, obj))
+// }
+//
+// function createTr(data, obj) {
+//         const tr = document.createElement('tr')
+//         tr.setAttribute("style", "justify-content: left")
+//         table.appendChild(tr)
+//
+//         const td1 = document.createElement('td')
+//         td1.innerText=obj.fields.institution
+//         tr.appendChild(td1)
+//
+//         const td2 = document.createElement('td')
+//         td2.innerText=`${obj.fields.pick_up_date} ${obj.fields.pick_up_time}`
+//         tr.appendChild(td2)
+//
+//         const td3 = document.createElement('td')
+//         td3.innerText=obj.fields.quantity
+//         tr.appendChild(td3)
+//
+//         const td4 = document.createElement('td')
+//         td4.innerText=obj.fields.categories
+//         tr.appendChild(td4)
+//
+//         const td5 = document.createElement('td')
+//         const input = document.createElement('input')
+//         input.setAttribute("type", "checkbox")
+//         input.setAttribute("name", "is_taken")
+//         input.setAttribute("value", obj.pk)
+//         if(obj.fields.is_taken) {
+//             input.setAttribute("checked", "checked")
+//         }
+//         input.addEventListener('change', () => createUserDonations(data))
+//
+//         td5.appendChild(input)
+//         tr.appendChild(td5)
+// }

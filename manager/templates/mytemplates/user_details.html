@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load filters %}
 
-{% block title %}Zaloguj się{% endblock %}
+{% block title %}Twój profil{% endblock %}
 
 {% block content %}
     <header>
@@ -19,14 +19,22 @@
             </div>
             <div class="" style="width: 100%; text-align:center; justify-content: center; display: flex; flex-direction: column">
                 <h3 style="font-size: 20px">Darowizny przekazane przez Ciebię:</h3>
-                <table class="" style="border-spacing: 0 15px; justify-content: left;">
+                <table id="donations" class="" style="border-spacing: 0 15px; justify-content: left;">
                     {% for donation in donation_list %}
                         <tr style="justify-content: left;">
-                            <td style="font-size: 15px">{{ donation.institution }}</td>
-                            <td style="font-size: 15px">{{ donation.organization }}</td>
-                            <td style="font-size: 15px">{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
-                            <td style="font-size: 15px">{{ donation.quantity }} worków</td>
-                            <td style="font-size: 15px">{{ donation|get_categories_names }}</td>
+                        {% if donation.is_taken %}
+                            <td style="font-size: 15px; color:gray">{{ donation.institution }}</td>
+                            <td style="font-size: 15px; color:gray">{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
+                            <td style="font-size: 15px; color:gray">{{ donation.quantity }} worków</td>
+                            <td style="font-size: 15px; color:gray">{{ donation|get_categories_names }}</td>
+                            <td><input type="checkbox" name="is_taken" value="{{ donation.id }}" checked="checked"></td>
+                        {% else %}
+                           <td style="font-size: 15px;">{{ donation.institution }}</td>
+                            <td style="font-size: 15px;">{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
+                            <td style="font-size: 15px;">{{ donation.quantity }} worków</td>
+                            <td style="font-size: 15px;">{{ donation|get_categories_names }}</td>
+                            <td><input type="checkbox" name="is_taken" value="{{ donation.id }}"></td>
+                        {% endif %}
                         </tr>
                         <br>
                     {% endfor %}
