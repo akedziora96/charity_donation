@@ -27,6 +27,8 @@ urlpatterns = [
     path('get_institution_api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
     path('user_details/', views.UserDetailsView.as_view(), name='user-details'),
     path('get_donation_api/', views.GetDonationApiView.as_view(), name='donation-api'),
+    path('user_edit/', views.UserEditView.as_view(), name='user-edit'),
+    path('user_change_password/', views.UserPasswordChangeView.as_view(), name='user-change-change-password'),
 
     path('login/', views.Login.as_view(), name='login'),
     path('register/', views.Register.as_view(), name='register'),

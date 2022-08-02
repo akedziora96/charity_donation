@@ -1,7 +1,10 @@
 import json
 
+from django.contrib.auth import logout
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordChangeView
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.serializers import serialize
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse, JsonResponse
@@ -11,7 +14,8 @@ from django.views import View
 from django.views.generic import ListView, UpdateView
 
 from manager.forms import UserRegisterForm, DonationAddForm
-from users.forms import CustomUserCreationForm, CustomAuthenticationForm, CustomUserChangeForm
+from users.forms import CustomUserCreationForm, CustomAuthenticationForm, CustomUserChangeForm, CustomUserEditForm, \
+    CustomPasswordChangeForm
 from users.models import User
 from .models import Donation, Institution, Category
 from django.db.models import F
@@ -126,15 +130,25 @@ class GetDonationApiView(View):
 
 class UserEditView(UpdateView):
     model = User
+    success_url = reverse_lazy('landing-page')
 
-    form_class = CustomUserChangeForm
+    form_class = CustomUserEditForm
     template_name = 'mytemplates/user_edit.html'
 
     def get_object(self, queryset=None):
         return get_object_or_404(User, pk=self.request.user.pk)
 
 
+class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    """View allows users to change their passwords"""
+    form_class = CustomPasswordChangeForm
+    login_url = reverse_lazy('landing-page')
+    template_name = 'mytemplates/user_password_change.html'
 
+    def get_success_url(self):
+        """Method forces loggin-out users accaouts and redirects to log-in View"""
+        logout(self.request)
+        return reverse_lazy('login-page')
 
 
 
