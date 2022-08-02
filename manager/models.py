@@ -14,6 +14,9 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    def natural_key(self):
+        return self.name
+
 
 class Institution(models.Model):
     TYPES = {
@@ -30,6 +33,9 @@ class Institution(models.Model):
     class Meta:
         verbose_name = _('Organizacja')
         verbose_name_plural = _('Organizacje')
+
+    def natural_key(self):
+        return f'{self.get_type_display()} "{self.name}"'
 
     def __str__(self):
         return f'{self.get_type_display()} "{self.name}"'
@@ -50,10 +56,12 @@ class Donation(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         blank=True, null=True, default=None, verbose_name='Użytkownik'
     )
+    is_taken = models.BooleanField(blank=True, default=False)
 
     class Meta:
         verbose_name = _('Darowizna')
         verbose_name_plural = _('Darowizny')
+        ordering = ('is_taken', '-pick_up_date', '-pick_up_time', 'quantity',)
 
     def __str__(self):
         return f'#{self.id}'
