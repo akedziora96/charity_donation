@@ -8,7 +8,7 @@
                 Witaj {{user.first_name}} {{ user.last_name }}
                 <ul class="dropdown">
                     <li><a href="{% url "user-details" %}">Profil</a></li>
-                    <li><a href="#">Ustawienia</a></li>
+                    <li><a href="{% url "user-edit" %}">Ustawienia</a></li>
                     {% if user.is_superuser %}
 {#                        <li><a href="{% url "admin-page" %}">Panel administratora</a></li>#}
                         <li><a href="/admin/">Panel administratora</a></li>
