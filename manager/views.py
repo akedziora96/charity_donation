@@ -5,6 +5,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers import serialize
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse, JsonResponse
@@ -25,14 +26,37 @@ from django.shortcuts import resolve_url
 
 
 class LandingPage(View):
+    def pagination(self, institution_type):
+        paginator = Paginator(Institution.objects.filter(type=institution_type), 5)
+        page = self.request.GET.get('page')
+
+        try:
+            insitutions_by_type = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer deliver the first page
+            insitutions_by_type = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range deliver last page of results
+            insitutions_by_type = paginator.page(paginator.num_pages)
+
+        return insitutions_by_type
+
     def get(self, request):
-        total_donated_quantity = Donation.objects.all().aggregate(Sum('quantity'))
         insitutions = Institution.objects.all()
+
+        total_donated_quantity = Donation.objects.all().aggregate(Sum('quantity'))
         donated_institutions = insitutions.filter(donation__quantity__gt=0).distinct().count()
+
+        foundations = self.pagination(institution_type=1)
+        ngos = self.pagination(institution_type=2)
+        charity_collections = self.pagination(institution_type=3)
+
         context = {
             'total_donated_quantity': total_donated_quantity,
-            'institutions': insitutions,
-            'donated_institutions': donated_institutions
+            'donated_institutions': donated_institutions,
+            'foundations': foundations,
+            'ngos': ngos,
+            'charity_collections': charity_collections
         }
         return render(request, 'mytemplates/index.html', context)
 
