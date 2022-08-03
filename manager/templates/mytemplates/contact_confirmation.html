@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Potwierdzenie otrzymania maila{% endblock %}
+
+{% block content %}
+    <header class="header--form-page">
+        {% include "navbar.html" %}
+        <div class="slogan container container--90" style="text-align:center; justify-content: center; display: flex;">>
+            <h2>
+                {% if user.is_authenticated %}
+                    Cześć {{ user.first_name }}!
+                {% else %}
+                    Cześć {{ name }}!
+                {% endif %}
+                <br>
+                Dziękujemy za przesłanie wiadomości.
+                <br>
+                Odpowiemy na nią najszybciej jak to możliwe.
+            </h2>
+        </div>
+    </header>
+{% endblock %}

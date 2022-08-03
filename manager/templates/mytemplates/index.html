@@ -71,7 +71,12 @@
             </div>
         </div>
 
-        <a href="{% url "register" %}" class="btn btn--large">Załóż konto</a>
+        {% if not user.is_authenticated %}
+            <a href="{% url "register" %}" class="btn btn--large">Załóż konto</a>
+        {% else %}
+            <a href="{% url "add-donation" %}#donate" class="btn btn--large">Przekaż dary</a>
+        {% endif %}
+
     </section>
 
     <section id="about-us" class="about-us">

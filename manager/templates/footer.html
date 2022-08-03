@@ -1,16 +1,28 @@
 {% load static %}
+{% load tags %}
 
 <footer>
     <div id="contact" class="contact">
         <h2>Skontaktuj się z nami</h2>
         <h3>Formularz kontaktowy</h3>
-        <form class="form--contact">
-            <div class="form-group form-group--50"><input type="text" name="name" placeholder="Imię" /></div>
-            <div class="form-group form-group--50"><input type="text" name="surname" placeholder="Nazwisko" /></div>
+        <form name=contactform action="{% url 'contact' %}" class="form--contact" method="post">
 
-            <div class="form-group"><textarea name="message" placeholder="Wiadomość" rows="1"></textarea></div>
+            {% if not user.is_authenticated %}
+                {% annonymous_contact_form as contact_form %}
+            {% else %}
+                {% logged_user_contact_form as contact_form %}
+            {% endif %}
 
-            <button class="btn" type="submit">Wyślij</button>
+            {% csrf_token %}
+            {% if not user.is_authenticated  %}
+                <div class="form-group form-group--50">{{contact_form.first_name}}</div>
+                <div class="form-group form-group--50">{{contact_form.last_name}}</div>
+
+                <div class="form-group">{{contact_form.email}}</div>
+            {% endif %}
+            <div class="form-group">{{contact_form.message}}</div>
+
+            <button class="btn" type="submit" onclick="document.contactform.submit();return false">Wyślij</button>
         </form>
     </div>
     <div class="bottom-line">
