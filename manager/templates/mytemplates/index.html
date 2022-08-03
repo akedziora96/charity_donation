@@ -96,7 +96,7 @@
         <div class="help--slides active" data-id="1">
             <p>W naszej bazie znajdziesz listę zweryfikowanych Fundacji, z którymi współpracujemy. Możesz sprawdzić czym się zajmują, komu pomagają i czego potrzebują.</p>
             <ul class="help--slides-items">
-                {% for foundation in institutions|get_by_type:1 %}
+                {% for foundation in foundations %}
                         <li>
                             <div class="col">
                                 <div class="title">"{{ foundation.name }}"</div>
@@ -109,14 +109,19 @@
                     </ul>
 
 
-
-            <!-- Pagination
             <ul class="help--slides-pagination">
-              <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="3">3</a></li>
+                {% for page in foundations.paginator.page_range %}
+              <li>
+                  <a href="?page={{ page }}"
+                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
+                     class="btn btn--small btn--without-border {% if page == foundations.number %}active{% endif %}"
+                     data-page="{{ page }}">
+                      {{ page }}
+                  </a>
+              </li>
+                {% endfor %}
             </ul>
-            -->
+
         </div>
 
 
@@ -127,7 +132,7 @@
                 quos suscipit corporis!
             </p>
             <ul class="help--slides-items">
-                {% for ngo in institutions|get_by_type:2 %}
+                {% for ngo in ngos%}
                         <li>
                             <div class="col">
                                 <div class="title">{{ ngo.name }}</div>
@@ -139,22 +144,25 @@
                 {% endfor %}
             </ul>
 
-            <!-- Pagination
-            <ul class="help--slides-pagination">
-              <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="3">3</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="4">4</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="5">5</a></li>
+           <ul class="help--slides-pagination">
+                {% for page in ngos.paginator.page_range %}
+              <li>
+                  <a href="?page={{ page }}"
+                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
+                     class="btn btn--small btn--without-border {% if page == ngos.number %}active{% endif %}"
+                     data-page="{{ page }}">
+                      {{ page }}
+                  </a>
+              </li>
+                {% endfor %}
             </ul>
-            -->
         </div>
 
         <!-- SLIDE 3 -->
         <div class="help--slides" data-id="3">
             <p>Lorem ipsum dolor sit amet, his ocurreret persequeris ea, ad utinam laudem duo. Verterem adipisci partiendo eos ne, ea his reque quaeque recteque, ne quo lobortis intellegam.</p>
             <ul class="help--slides-items">
-                {% for charity_collection in institutions|get_by_type:3 %}
+                {% for charity_collection in charity_collections %}
                         <li>
                             <div class="col">
                                 <div class="title">{{ charity_collection.name }}</div>
@@ -166,12 +174,18 @@
                 {% endfor %}
             </ul>
 
-            <!-- Pagination
             <ul class="help--slides-pagination">
-              <li><a href="#" class="btn btn--small btn--without-border active" data-page="1">1</a></li>
-              <li><a href="#" class="btn btn--small btn--without-border" data-page="2">2</a></li>
+                {% for page in charity_collections.paginator.page_range %}
+              <li>
+                  <a href="?page={{ page }}"
+                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
+                     class="btn btn--small btn--without-border {% if page == charity_collections.number %}active{% endif %}"
+                     data-page="{{ page }}">
+                      {{ page }}
+                  </a>
+              </li>
+                {% endfor %}
             </ul>
-            -->
         </div>
     </section>
 
