@@ -18,10 +18,11 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.views.generic import ListView, UpdateView
-
-from manager.forms import UserRegisterForm, DonationAddForm
-from users.forms import CustomUserCreationForm, CustomAuthenticationForm, CustomUserChangeForm, CustomUserEditForm, \
-    CustomPasswordChangeForm, CustomPasswordResetForm, CustomSetPasswordForm
+from manager.forms import DonationAddForm, LoggedUserMailContactForm, AnnonymousMailContactForm
+from users.forms import (
+    CustomUserCreationForm, CustomAuthenticationForm, CustomUserEditForm, CustomPasswordChangeForm,
+    CustomPasswordResetForm, CustomSetPasswordForm
+)
 from users.models import User
 from .models import Donation, Institution, Category
 from django.db.models import F
@@ -252,8 +253,56 @@ class UserPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'reset_password/password_reset_complete.html'
 
 
+class SendContactMailView(View):
+    def send_mail_to_user(self, first_name, last_name, email):
+        subject = 'Potwierdzenie otrzymania wiadomości'
+        email_body = f'{first_name} {last_name}, dziękujemy za kontakt. ' \
+                     f'Administrator odezwie się do Ciebie najszybciej jak to możliwe'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [f'{email}']
+        send_mail(subject, email_body, email_from, recipient_list)
 
+    def send_mail_to_admins(self, first_name, last_name, email, user_message):
+        subject = f'Wiadomość od {first_name} {last_name} ({email})'
+        email_body = f'Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}".'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [user.email for user in User.objects.filter(is_superuser=True)]
+        send_mail(subject, email_body, email_from, recipient_list)
 
+    def get(self, request):
+        url = reverse_lazy('landing-page') + '#contact'
+        return redirect(url)
+
+    def post(self, request):
+        user = request.user
+
+        if not user.is_authenticated:
+            form = AnnonymousMailContactForm(request.POST)
+        else:
+            form = LoggedUserMailContactForm(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+
+            if not user.is_authenticated:
+                first_name = data.get('first_name')
+                last_name = data.get('last_name')
+                email = data.get('email')
+            else:
+                first_name = user.first_name
+                last_name = user.last_name
+                email = user.email
+
+            user_message = data.get('message')
+
+            self.send_mail_to_user(
+                first_name=first_name, last_name=last_name, email=email
+            )
+            self.send_mail_to_admins(
+                first_name=first_name, last_name=last_name, email=email, user_message=user_message
+            )
+
+            return render(request, 'mytemplates/contact_confirmation.html', {'name': first_name})
 
 
 
