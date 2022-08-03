@@ -3,31 +3,41 @@ import json
 from django.contrib.auth import logout
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.views import LoginView, PasswordChangeView
+from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, PasswordResetDoneView, \
+    PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers import serialize
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views import View
 from django.views.generic import ListView, UpdateView
 
 from manager.forms import UserRegisterForm, DonationAddForm
 from users.forms import CustomUserCreationForm, CustomAuthenticationForm, CustomUserChangeForm, CustomUserEditForm, \
-    CustomPasswordChangeForm
+    CustomPasswordChangeForm, CustomPasswordResetForm, CustomSetPasswordForm
 from users.models import User
 from .models import Donation, Institution, Category
 from django.db.models import F
 
+from django.core.mail import send_mail, message
+from django.conf import settings
+from .utils import account_activation_token
+from django.utils.encoding import force_bytes, force_str, DjangoUnicodeDecodeError
+from django.contrib import messages
 
 from django.shortcuts import resolve_url
 
 
 class LandingPage(View):
     def pagination(self, institution_type):
-        paginator = Paginator(Institution.objects.filter(type=institution_type), 5)
+        paginator = Paginator(Institution.objects.filter(type=institution_type), 1)
         page = self.request.GET.get('page')
 
         try:
@@ -112,6 +122,22 @@ class Register(UserPassesTestMixin, View):
     def test_func(self):
         return not self.request.user.is_authenticated
 
+    def send_activation_token(self, user):
+        user = user
+        domain = get_current_site(self.request).domain
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+
+        link = reverse('activate', kwargs={'uidb64': uid, 'token': token})
+
+        activate_url = 'http://' + domain + link
+
+        subject = 'Dziękujemy za rejestrację'
+        email_body = f'W celu aktywacji konta prosimy o klinięcie poniższego linku:\n {activate_url}'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [f'{user.email}']
+        send_mail(subject, email_body, email_from, recipient_list)
+
     def get(self, request):
         form = CustomUserCreationForm()
         return render(request, 'mytemplates/register.html', {'form': form})
@@ -122,10 +148,42 @@ class Register(UserPassesTestMixin, View):
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data.get('password1'))
+            user.is_active = False
             user.save()
+
+            self.send_activation_token(user=user)
+
+            messages.success(
+                request, 'Konto zostało pomyślnie utworzone. Na maila wysłaliśmy link z kodem aktywacyjnym.'
+            )
             return redirect('login')
 
         return render(request, 'mytemplates/register.html', {'form': form})
+
+
+class UserActivateView(UserPassesTestMixin, View):
+    def test_func(self):
+        return not self.request.user.is_authenticated
+
+    def get(self, request, uidb64, token):
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=user_id)
+
+            if account_activation_token.check_token(user, token) and not user.is_active:
+                user.is_active = True
+                user.save()
+                messages.success(request, 'Konto zostało pomyślnie autoryzowane.')
+            else:
+                messages.success(request, 'Konto zostało już autoryzowane.')
+                return HttpResponse('Konto zostało już autoryzowane.')
+
+            return redirect('login')
+
+        except ObjectDoesNotExist or DjangoUnicodeDecodeError:
+            messages.success(request, 'Wystąþił błąd w czasie autoryzacji.')
+            return HttpResponse('Coś poszło nie tak')
+            # return redirect('login')
 
 
 class UserDetailsView(ListView):
@@ -171,17 +229,27 @@ class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
 
     def get_success_url(self):
         """Method forces loggin-out users accaouts and redirects to log-in View"""
-        logout(self.request)
+        logout(self.request.user)
         return reverse_lazy('login-page')
 
 
+class UserPasswordResetView(PasswordResetView):
+    email_template_name = 'reset_password/password_reset_email.html'
+    template_name = 'reset_password/password_reset_form.html'
+    form_class = CustomPasswordResetForm
 
 
+class UserPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'reset_password/password_reset_done.html'
 
 
+class UserPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'reset_password/password_reset_confirm.html'
+    form_class = CustomSetPasswordForm
 
 
-
+class UserPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'reset_password/password_reset_complete.html'
 
 
 

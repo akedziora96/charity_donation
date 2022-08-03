@@ -29,10 +29,17 @@ urlpatterns = [
     path('get_donation_api/', views.GetDonationApiView.as_view(), name='donation-api'),
     path('user_edit/', views.UserEditView.as_view(), name='user-edit'),
     path('user_change_password/', views.UserPasswordChangeView.as_view(), name='user-change-change-password'),
+    path('activate/<uidb64>/<token>', views.UserActivateView.as_view(), name='activate'),
 
-    path('login/', views.Login.as_view(), name='login'),
+    path('login/', views.Login.as_view(redirect_authenticated_user=True), name='login'),
     path('register/', views.Register.as_view(), name='register'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout-page'),
+
+    path('password_reset/', views.UserPasswordResetView.as_view(), name='password_reset'),
+    path('password_reset/done/', views.UserPasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', views.UserPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/done/', views.UserPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+
 
 
     # path('form/', views.form),
