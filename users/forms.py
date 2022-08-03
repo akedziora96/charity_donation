@@ -1,6 +1,8 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm, PasswordChangeForm
-from django.shortcuts import redirect
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm, AuthenticationForm, PasswordChangeForm, \
+    PasswordResetForm, SetPasswordForm
+from django.core.exceptions import ValidationError
+
 
 from .models import User
 
@@ -65,12 +67,36 @@ class CustomAuthenticationForm(AuthenticationForm):
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
-    pass
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['old_password'].widget = forms.PasswordInput(
             attrs={'class': 'form-control', 'placeholder': 'Aktualne hasło'}
         )
+        self.fields['new_password1'].widget = forms.PasswordInput(
+            attrs={'class': 'form-control', 'placeholder': 'Podaj nowe hasło'}
+        )
+        self.fields['new_password2'].widget = forms.PasswordInput(
+            attrs={'class': 'form-control', 'placeholder': 'Powtórz nowe hasło'}
+        )
+
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget = forms.EmailInput(attrs={'placeholder': 'E-mail'})
+
+    def clean(self):
+        data = self.cleaned_data
+        email = data.get('email')
+        if not User.objects.filter(email=email).exists():
+            raise ValidationError('Konto użytkownika o podanym mailu nie istnieje!')
+
+        return data
+
+
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields['new_password1'].widget = forms.PasswordInput(
             attrs={'class': 'form-control', 'placeholder': 'Podaj nowe hasło'}
         )

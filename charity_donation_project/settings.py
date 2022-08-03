@@ -138,3 +138,15 @@ try:
 except ModuleNotFoundError:
     print("No database configuration!")
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+
+try:
+    from charity_donation_project.local_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
+except ModuleNotFoundError:
+    print("No email configuration!")
+
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
