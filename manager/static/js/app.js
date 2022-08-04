@@ -21,7 +21,9 @@ document.addEventListener("DOMContentLoaded", function() {
        */
       this.$buttonsContainer.addEventListener("click", e => {
         if (e.target.classList.contains("btn")) {
-          this.changeSlide(e);
+            this.changeSlide(e);
+            createInstitutionsPage(getInstitutionType(), 1)
+            setButtonActive(1)
         }
       });
 
@@ -30,7 +32,9 @@ document.addEventListener("DOMContentLoaded", function() {
        */
       this.$el.addEventListener("click", e => {
         if (e.target.classList.contains("btn") && e.target.parentElement.parentElement.classList.contains("help--slides-pagination")) {
-          this.changePage(e);
+            const targetPage = this.changePage(e);
+            createInstitutionsPage(getInstitutionType(),targetPage)
+            setButtonActive(targetPage)
         }
       });
     }
@@ -52,6 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         if (el.dataset.id === this.currentSlide) {
           el.classList.add("active");
+
         }
       });
     }
@@ -61,9 +66,7 @@ document.addEventListener("DOMContentLoaded", function() {
      */
     changePage(e) {
       e.preventDefault();
-      const page = e.target.dataset.page;
-
-      console.log(page);
+        return e.target.dataset.page
     }
   }
   const helpSection = document.querySelector(".help");
@@ -257,9 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             /* Step 5 - form submit */
-            if (this.currentStep === 6) {
-
-                }
+            if (this.currentStep === 6) {}
 
         });
       });
@@ -282,6 +283,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
       // Form submit
       this.$form.querySelector("form").addEventListener("submit", e => this.submit(e));
+      // TODO: in form.html, there is a onclick function to submit form. Move it here.
     }
 
     /**
@@ -325,14 +327,82 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   const div = document.querySelector('div.user-donations')
+    if (div) {
   div.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener("change", () => createUserDonations(checkbox)
       )
   })
+    }
 });
 
 
 //POBIERANIE API
+
+function getInstitutionType() {
+    return document.querySelector('ul.help--buttons')
+        .querySelector('a.active').parentElement.dataset.id
+
+}
+
+function getCurrentPage() {
+    return document.querySelector('ul.help--slides-pagination')
+        .querySelector('a.active').dataset.page
+}
+
+function setButtonActive(targetPage) {
+    const currentButton = document.querySelector('ul.help--slides-pagination')
+        .querySelector(`a[data-page="${getCurrentPage()}"]`)
+    currentButton.classList.remove('active')
+
+    const nextButton = document.querySelector('ul.help--slides-pagination')
+        .querySelector(`a[data-page="${targetPage}"]`)
+    nextButton.classList.add('active')
+}
+
+function createInstitutionsPage(institutionType, pageNum) {
+    fetch(`/get-page-api/?type=${institutionType}&page=${pageNum}`).then(response => response.json())
+        .then(data => {createInstitutionsPageHtml(institutionType, data)})
+
+}
+
+function createInstitutionsPageHtml(institutionType, data) {
+    const list = document.querySelector("section#help").
+    querySelector(`div[data-id="${institutionType}"]`).
+    querySelector('ul')
+
+    list.querySelectorAll('li').forEach(li => li.remove())
+
+    data.forEach(obj => {
+        const li = document.createElement('li')
+        list.appendChild(li)
+
+        const div = document.createElement('div')
+        div.setAttribute('class', 'col')
+        li.appendChild(div)
+
+        const div2 = document.createElement('div')
+        div2.setAttribute('class', 'title')
+        div2.innerHTML = `"${obj.fields.name}"`
+        div.appendChild(div2)
+
+        const div3 = document.createElement('div')
+        div3.setAttribute('class', 'subtitle')
+        div3.innerHTML = obj.fields.description
+        div.appendChild(div3)
+
+        const div4 = document.createElement('div')
+        div4.setAttribute('class', 'col')
+        li.appendChild(div4)
+
+        const div5 = document.createElement('div')
+        div5.setAttribute('class', 'text')
+        div5.innerHTML = obj.fields.categories
+        div4.appendChild(div5)
+
+    })
+    console.log(list)
+}
+
 
 function createUserDonations(checkbox) {
     fetch(`/get-donation-api/?id=${checkbox.value}`).then(response => response.json())
@@ -604,43 +674,3 @@ function removeAddressDateSummary() {
     Array.from(dateList.children).forEach(li => li.remove())
 }
 
-// function createUserDonations(data) {
-//     const table = document.querySelector('table#donations')
-//     table.querySelectorAll('tr').forEach(tr => {tr.remove()});
-//     data.forEach(obj =>  createTr(data, obj))
-// }
-//
-// function createTr(data, obj) {
-//         const tr = document.createElement('tr')
-//         tr.setAttribute("style", "justify-content: left")
-//         table.appendChild(tr)
-//
-//         const td1 = document.createElement('td')
-//         td1.innerText=obj.fields.institution
-//         tr.appendChild(td1)
-//
-//         const td2 = document.createElement('td')
-//         td2.innerText=`${obj.fields.pick_up_date} ${obj.fields.pick_up_time}`
-//         tr.appendChild(td2)
-//
-//         const td3 = document.createElement('td')
-//         td3.innerText=obj.fields.quantity
-//         tr.appendChild(td3)
-//
-//         const td4 = document.createElement('td')
-//         td4.innerText=obj.fields.categories
-//         tr.appendChild(td4)
-//
-//         const td5 = document.createElement('td')
-//         const input = document.createElement('input')
-//         input.setAttribute("type", "checkbox")
-//         input.setAttribute("name", "is_taken")
-//         input.setAttribute("value", obj.pk)
-//         if(obj.fields.is_taken) {
-//             input.setAttribute("checked", "checked")
-//         }
-//         input.addEventListener('change', () => createUserDonations(data))
-//
-//         td5.appendChild(input)
-//         tr.appendChild(td5)
-// }

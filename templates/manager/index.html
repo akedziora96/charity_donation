@@ -117,12 +117,9 @@
             <ul class="help--slides-pagination">
                 {% for page in foundations.paginator.page_range %}
               <li>
-                  <a href="?page={{ page }}"
-                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
-                     class="btn btn--small btn--without-border {% if page == foundations.number %}active{% endif %}"
-                     data-page="{{ page }}">
-                      {{ page }}
-                  </a>
+                  <a href="#"
+                     class="btn btn--small btn--without-border {% if page == charity_collections.number %}active{% endif %}"
+                     data-page="{{ page }}">{{ page }}</a>
               </li>
                 {% endfor %}
             </ul>
@@ -152,12 +149,9 @@
            <ul class="help--slides-pagination">
                 {% for page in ngos.paginator.page_range %}
               <li>
-                  <a href="?page={{ page }}"
-                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
-                     class="btn btn--small btn--without-border {% if page == ngos.number %}active{% endif %}"
-                     data-page="{{ page }}">
-                      {{ page }}
-                  </a>
+                  <a href="#"
+                     class="btn btn--small btn--without-border {% if page == charity_collections.number %}active{% endif %}"
+                     data-page="{{ page }}">{{ page }}</a>
               </li>
                 {% endfor %}
             </ul>
@@ -182,12 +176,9 @@
             <ul class="help--slides-pagination">
                 {% for page in charity_collections.paginator.page_range %}
               <li>
-                  <a href="?page={{ page }}"
-                     onclick="location.href= 'http://127.0.0.1:8000/?page={{ page }}#help';return false"
+                  <a href="#"
                      class="btn btn--small btn--without-border {% if page == charity_collections.number %}active{% endif %}"
-                     data-page="{{ page }}">
-                      {{ page }}
-                  </a>
+                     data-page="{{ page }}">{{ page }}</a>
               </li>
                 {% endfor %}
             </ul>

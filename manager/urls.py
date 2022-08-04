@@ -26,4 +26,5 @@ urlpatterns = [
     # API's views
     path('get-institution-api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
     path('get-donation-api/', views.GetDonationApiView.as_view(), name='donation-api'),
+    path('get-page-api/', views.PaginationApi.as_view(), name='pagination-api'),
 ]
