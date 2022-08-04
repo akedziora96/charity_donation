@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     this.currentStep--
                 }
 
-            const address = '/get_institution_api?'
+            const address = '/get-institution-api?'
             fetch(fetchAdress(address)).then(response => response.json()).then(data => {
                     if(isEmpty(data)) {
                       this.currentStep--
@@ -324,8 +324,8 @@ document.addEventListener("DOMContentLoaded", function() {
     new FormSteps(form);
   }
 
-  const table = document.querySelector('table#donations')
-  table.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+  const div = document.querySelector('div.user-donations')
+  div.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener("change", () => createUserDonations(checkbox)
       )
   })
@@ -335,60 +335,44 @@ document.addEventListener("DOMContentLoaded", function() {
 //POBIERANIE API
 
 function createUserDonations(checkbox) {
-    fetch(`/get_donation_api/?id=${checkbox.value}`).then(response => response.json())
+    fetch(`/get-donation-api/?id=${checkbox.value}`).then(response => response.json())
         .then(data => {
-            const table = document.querySelector('table#donations')
-            table.querySelectorAll('tr').forEach(tr => {tr.remove()});
+            const div = document.querySelector('div.user-donations')
+            div.querySelectorAll('tr').forEach(tr => {tr.remove()});
             data.forEach(obj =>  {console.log(obj); createTr(data, obj)})
         })
 }
 
 function createTr(data, obj) {
-    const tbody = document.querySelector('table#donations').firstElementChild
+    const tbody = document.querySelector('div.user-donations').querySelector('tbody')
     const tr = document.createElement('tr')
-    tr.setAttribute("style", "justify-content: left")
+    if(obj.fields.is_taken) {
+        tr.setAttribute("class", "taken")
+    } else {
+        tr.setAttribute("class", "untaken")
+    }
     tbody.appendChild(tr)
 
     const td1 = document.createElement('td')
     td1.innerText = obj.fields.institution
-    if(obj.fields.is_taken) {
-        td1.setAttribute("style", "font-size: 15px; color:gray")
-    } else {
-        td1.setAttribute("style", "font-size: 15px;")
-    }
     tr.appendChild(td1)
 
     const td2 = document.createElement('td')
     td2.innerText = `${formatDate(obj)} ${formatTime(obj)}`
-    if(obj.fields.is_taken) {
-        td2.setAttribute("style", "font-size: 15px; color:gray")
-    } else {
-        td2.setAttribute("style", "font-size: 15px;")
-    }
     tr.appendChild(td2)
 
     const td3 = document.createElement('td')
     td3.innerText = `${obj.fields.quantity} worków`
-    if(obj.fields.is_taken) {
-        td3.setAttribute("style", "font-size: 15px; color:gray")
-    } else {
-        td3.setAttribute("style", "font-size: 15px;")
-    }
     tr.appendChild(td3)
 
     const td4 = document.createElement('td')
     td4.innerText = cateoriesToString(obj)
-    if(obj.fields.is_taken) {
-        td4.setAttribute("style", "font-size: 15px; color:gray")
-    } else {
-        td4.setAttribute("style", "font-size: 15px;")
-    }
     tr.appendChild(td4)
 
     const td5 = document.createElement('td')
     const input = document.createElement('input')
     input.setAttribute("type", "checkbox")
-    input.setAttribute("name", "iz_taken")
+    input.setAttribute("name", "is_taken")
     input.setAttribute("value", obj.pk)
 
     input.checked = !!obj.fields.is_taken;
@@ -397,6 +381,7 @@ function createTr(data, obj) {
 
     td5.appendChild(input)
     tr.appendChild(td5)
+
 }
 
 function cateoriesToString(obj) {
