@@ -6,29 +6,19 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import ListView
 from manager.forms import DonationAddForm, LoggedUserMailContactForm, AnnonymousMailContactForm
 from users.models import User
 from .models import Donation, Institution, Category
 from django.core.mail import send_mail
 from django.conf import settings
 
+PAGINATION_OBJECTS_PER_PAGE = 1
+
 
 class LandingPage(View):
     def pagination(self, institution_type):
-        paginator = Paginator(Institution.objects.filter(type=institution_type), 1)
-        page = self.request.GET.get('page')
-
-        try:
-            insitutions_by_type = paginator.page(page)
-        except PageNotAnInteger:
-            # If page is not an integer deliver the first page
-            insitutions_by_type = paginator.page(1)
-        except EmptyPage:
-            # If page is out of range deliver last page of results
-            insitutions_by_type = paginator.page(paginator.num_pages)
-
-        return insitutions_by_type
+        paginator = Paginator(Institution.objects.filter(type=institution_type), PAGINATION_OBJECTS_PER_PAGE)
+        return paginator.page(1)
 
     def get(self, request):
         insitutions = Institution.objects.all()
@@ -36,9 +26,10 @@ class LandingPage(View):
         total_donated_quantity = Donation.objects.all().aggregate(Sum('quantity'))
         donated_institutions = insitutions.filter(donation__quantity__gt=0).distinct().count()
 
-        foundations = self.pagination(institution_type=1)
-        ngos = self.pagination(institution_type=2)
-        charity_collections = self.pagination(institution_type=3)
+        get_type_num_by_type_name = {value: key for key, value in Institution.TYPES}
+        foundations = self.pagination(institution_type=get_type_num_by_type_name.get('Fundacja'))
+        ngos = self.pagination(institution_type=get_type_num_by_type_name.get('Organizacja Pozarządowa'))
+        charity_collections = self.pagination(institution_type=get_type_num_by_type_name.get('Zbiórka Lokalna'))
 
         context = {
             'total_donated_quantity': total_donated_quantity,
@@ -48,6 +39,25 @@ class LandingPage(View):
             'charity_collections': charity_collections
         }
         return render(request, 'manager/index.html', context)
+
+
+class PaginationApi(View):
+    def get(self, request):
+        page = request.GET.get('page')
+        institution_type = request.GET.get('type')
+        paginator = Paginator(Institution.objects.filter(type=institution_type), PAGINATION_OBJECTS_PER_PAGE)
+
+        try:
+            institutions = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer deliver the first page
+            institutions = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range deliver last page of results
+            institutions = paginator.page(paginator.num_pages)
+
+        data = serialize('json', institutions, use_natural_foreign_keys=True)
+        return HttpResponse(data, content_type="application/json")
 
 
 class AddDonation(LoginRequiredMixin, View):
@@ -90,11 +100,6 @@ class ConfirmationView(LoginRequiredMixin, View):
 
     def get(self, request):
         return render(request, 'manager/form_confirmation.html')
-
-
-class UserDonationsView(ListView):
-    model = Donation
-    template_name = 'manager/user_details.html'
 
     def get_queryset(self):
         return Donation.objects.filter(user=self.request.user)
@@ -166,100 +171,6 @@ class SendContactMailView(View):
             )
 
             return render(request, 'manager/contact_confirmation.html', {'name': first_name})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # def index(request):
 #     return render(request, 'defaults/index.html')
