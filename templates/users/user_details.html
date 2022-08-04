@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+{% load filters %}
+
+{% block title %}Twój profil{% endblock %}
+
+{% block content %}
+    <header>
+        {% include "navbar.html" %}
+    </header>
+    <h2 >Panel użytkownika</h2>
+    <div class="user-panel">
+        <div class="user-data">
+            <h3>Twoje dane:</h3>
+            <p>Imię: {{ user.first_name }}</p>
+            <p>Nazwisko: {{ user.last_name }}</p>
+            <p>E-mail: {{ user.email }}</p>
+        </div>
+        <div class="user-donations">
+            <h3>Darowizny przekazane przez Ciebię:</h3>
+            <p>Prosimy o zaznaczenie odebranych darowizn</p>
+            <br>
+            <table>
+                {% for donation in donation_list %}
+                    {% if donation.is_taken %}
+                        <tr class="taken">
+                            <td>{{ donation.institution }}</td>
+                            <td>{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
+                            <td>{{ donation.quantity }} worków</td>
+                            <td>{{ donation|get_categories_names }}</td>
+                            <td>
+                                <input class="user-checkbox" type="checkbox" name="is_taken" value="{{ donation.id }}" checked="checked">
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr class="untaken">
+                            <td>{{ donation.institution }}</td>
+                            <td>{{ donation.pick_up_date }} {{ donation.pick_up_time }}</td>
+                            <td>{{ donation.quantity }} worków</td>
+                            <td>{{ donation|get_categories_names }}</td>
+                            <td><input type="checkbox" name="is_taken" value="{{ donation.id }}"></td>
+                        </tr>
+                    {% endif %}
+                    </tr>
+                    <br>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    </section>
+    <br>
+    <br>
+{% endblock %}
