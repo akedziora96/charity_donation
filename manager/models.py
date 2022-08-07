@@ -33,6 +33,7 @@ class Institution(models.Model):
     class Meta:
         verbose_name = _('Organizacja')
         verbose_name_plural = _('Organizacje')
+        ordering = ('name', 'type', 'description',)
 
     def natural_key(self):
         return f'{self.get_type_display()} "{self.name}"'

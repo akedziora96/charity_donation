@@ -20,7 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*ztq3h_a9h*6d*0d#y=s^w8trz8xtb9^l=xbr+x=i20-fxp2+p'
+
+try:
+    from charity_donation_project.local_settings import SECRET_KEY
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("No secret key found!")
+
+SECRET_KEY = SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -76,12 +82,18 @@ WSGI_APPLICATION = 'charity_donation_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+try:
+    from charity_donation_project.local_settings import DATABASES
+except ModuleNotFoundError:
+    raise ModuleNotFoundError("No database configuration!")
+
+DATABASES = DATABASES
+
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -133,10 +145,7 @@ LOGIN_REDIRECT_URL = 'landing-page'
 
 LOGOUT_REDIRECT_URL = 'landing-page'
 
-try:
-    from charity_donation_project.local_settings import DATABASES
-except ModuleNotFoundError:
-    print("No database configuration!")
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -146,7 +155,7 @@ EMAIL_PORT = 587
 try:
     from charity_donation_project.local_settings import EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
 except ModuleNotFoundError:
-    print("No email configuration!")
+    raise ModuleNotFoundError("No email configuration!")
 
 EMAIL_HOST_USER = EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
