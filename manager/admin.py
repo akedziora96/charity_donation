@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+from .forms import DonationAddForm
 from .models import Category, Institution, Donation
 
 
@@ -17,6 +19,8 @@ class InstitutionAdmin(admin.ModelAdmin):
 
 @admin.register(Donation)
 class DonationAdmin(admin.ModelAdmin):
+    add_form = DonationAddForm
+    form = DonationAddForm
     list_display = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
     list_filter = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
     search_fields = ('user', 'institution')

@@ -5,7 +5,6 @@ from django.contrib.auth.views import (
 )
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -46,7 +45,7 @@ class Register(UserPassesTestMixin, View):
         subject = 'Dziękujemy za rejestrację'
         email_body = f'W celu aktywacji konta prosimy o klinięcie poniższego linku:\n {activate_url}'
         email_from = settings.EMAIL_HOST_USER
-        recipient_list = [f'{user.email}']
+        recipient_list = [user.email]
         send_mail(subject, email_body, email_from, recipient_list)
 
     def get(self, request):
@@ -84,17 +83,14 @@ class UserActivateView(UserPassesTestMixin, View):
             if account_activation_token.check_token(user, token) and not user.is_active:
                 user.is_active = True
                 user.save()
-                messages.success(request, 'Konto zostało pomyślnie autoryzowane.')
+                messages.success(request, 'Konto zostało pomyślnie aktywowane.')
             else:
-                messages.success(request, 'Konto zostało już autoryzowane.')
-                return HttpResponse('Konto zostało już autoryzowane.')
-
-            return redirect('login')
+                messages.success(request, 'Konto zostało już aktywowane.')
 
         except ObjectDoesNotExist or DjangoUnicodeDecodeError:
-            messages.success(request, 'Wystąþił błąd w czasie autoryzacji.')
-            return HttpResponse('Coś poszło nie tak')
-            # return redirect('login')
+            messages.success(request, 'Wystąþił błąd w czasie aktywacji.')
+
+        return redirect('login')
 
 
 class UserDetailView(ListView):

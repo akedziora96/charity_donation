@@ -3,8 +3,10 @@ from django.contrib.auth.forms import UserCreationForm, UserChangeForm, Authenti
     PasswordResetForm, SetPasswordForm
 from django.core.exceptions import ValidationError
 
+from django.utils.translation import gettext_lazy as _
 
 from .models import User
+from .validators import first_name_regex_validator, last_name_regex_validator
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -25,10 +27,16 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ('email', 'first_name', 'last_name',)
         widgets = {
-            'first_name': forms.TextInput(attrs={'placeholder': 'Imię'}),
+            'first_name': forms.TextInput(attrs={'placeholder': 'Imię', }),
             'last_name': forms.TextInput(attrs={'placeholder': 'Nazwisko'}),
             'email': forms.EmailInput(attrs={'placeholder': 'E-mail'})
         }
+
+    def clean_first_name(self):
+        return first_name_regex_validator(first_name=self.cleaned_data.get('first_name'))
+
+    def clean_last_name(self):
+        return last_name_regex_validator(last_name=self.cleaned_data.get('last_name'))
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -43,6 +51,12 @@ class CustomUserChangeForm(UserChangeForm):
         model = User
         fields = ('email', 'first_name', 'last_name',)
 
+    def clean_first_name(self):
+        return first_name_regex_validator(first_name=self.cleaned_data.get('first_name'))
+
+    def clean_last_name(self):
+        return last_name_regex_validator(last_name=self.cleaned_data.get('last_name'))
+
 
 class CustomUserEditForm(CustomUserChangeForm):
     def __init__(self, *args, **kwargs):
@@ -55,6 +69,12 @@ class CustomUserEditForm(CustomUserChangeForm):
             'last_name': forms.TextInput(attrs={'placeholder': 'Nazwisko'}),
             'email': forms.EmailInput(attrs={'placeholder': 'E-mail'})
         }
+
+    def clean_first_name(self):
+        return first_name_regex_validator(first_name=self.cleaned_data.get('first_name'))
+
+    def clean_last_name(self):
+        return last_name_regex_validator(last_name=self.cleaned_data.get('last_name'))
 
 
 class CustomAuthenticationForm(AuthenticationForm):
@@ -89,7 +109,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         data = self.cleaned_data
         email = data.get('email')
         if not User.objects.filter(email=email).exists():
-            raise ValidationError('Konto użytkownika o podanym mailu nie istnieje!')
+            raise ValidationError(_('Konto użytkownika o podanym mailu nie istnieje!'), code='email_doesnt_exist')
 
         return data
 
