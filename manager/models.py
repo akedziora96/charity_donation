@@ -3,6 +3,9 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from django.db import models
 
+from manager.validators import address_regex_validator, city_name_regex_validator, phone_regex_validator, \
+    postcode_regex_validator
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255, verbose_name='Nazwa kategorii')
@@ -46,10 +49,12 @@ class Donation(models.Model):
     quantity = models.PositiveIntegerField(verbose_name='Ilość worków')
     categories = models.ManyToManyField(Category, verbose_name='Kategorie artykułu')
     institution = models.ForeignKey(Institution, on_delete=models.CASCADE, verbose_name='Instytucja przyjmująca')
-    address = models.CharField(max_length=100, verbose_name='Adres zamieszkania')
-    phone_number = models.CharField(max_length=15, verbose_name='Nr telefonu')
-    city = models.CharField(max_length=100, verbose_name='Miasto')
-    zip_code = models.CharField(max_length=6, verbose_name='Kod pocztowy')
+    address = models.CharField(
+        max_length=100, verbose_name='Adres zamieszkania', validators=[address_regex_validator]
+    )
+    phone_number = models.CharField(max_length=15, verbose_name='Nr telefonu', validators=[phone_regex_validator])
+    city = models.CharField(max_length=100, verbose_name='Miasto', validators=[city_name_regex_validator])
+    zip_code = models.CharField(max_length=6, verbose_name='Kod pocztowy', validators=[postcode_regex_validator])
     pick_up_date = models.DateField(verbose_name='Data odbioru')
     pick_up_time = models.TimeField(verbose_name='Czas odbioru')
     pick_up_comment = models.TextField(verbose_name='Komentarz')

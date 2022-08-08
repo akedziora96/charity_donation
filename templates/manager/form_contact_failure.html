@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Niepowodzenie przekazania{% endblock %}
+
+{% block content %}
+    <header class="header--form-page">
+        {% include "navbar.html" %}
+        <div class="slogan container container--90" style="text-align:center; justify-content: center; display: flex;">>
+            <h2>
+                Coś poszło nie tak :(<br>
+                Spróbuj ponownie poprzez<br>
+                <a href="{% url "contact" %}"><b><u>formularz kontaktowy</u></b></a> .
+            </h2>
+        </div>
+    </header>
+{% endblock %}

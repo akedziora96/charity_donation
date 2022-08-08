@@ -210,18 +210,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (ids.length === 0) {
                     this.currentStep--
                 }
-
-            const address = '/get-institution-api?'
-            fetch(fetchAdress(address)).then(response => response.json()).then(data => {
-                    if(isEmpty(data)) {
-                      this.currentStep--
-                    }
-                    else {
-                        this.updateForm();
-                        show_id(address, crateChoiceHtml);
-                        getCategoriesNames(ids)
+                else {
+                    const address = '/get-institution-api?'
+                    fetch(fetchAdress(address)).then(response => response.json()).then(data => {
+                            if(isEmpty(data)) {
+                                this.currentStep--
+                            }
+                            else {
+                                this.updateForm();
+                                show_id(address, crateChoiceHtml);
+                                getCategoriesNames(ids)
                     }
                 })
+                }
             }
 
             /* Step 2 */
@@ -336,7 +337,13 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-//POBIERANIE API
+
+
+
+
+//EXTENDED FUNCTIONS
+
+//DYNAMIC INSTITUTIONS PAGINATED DISPLAY ON LANDING PAGE
 
 function getInstitutionType() {
     return document.querySelector('ul.help--buttons')
@@ -403,6 +410,11 @@ function createInstitutionsPageHtml(institutionType, data) {
     console.log(list)
 }
 
+
+
+
+
+//DYNAMIC DONATION  DISPLAY ON USER PROFILE PAGE
 
 function createUserDonations(checkbox) {
     fetch(`/get-donation-api/?id=${checkbox.value}`).then(response => response.json())
@@ -484,6 +496,26 @@ function formatTime(obj) {
 }
 
 
+
+
+//DYNAMIC DONATION-ADD FORM DISPLAY AND VALIDATION OF FORM FIELDS
+
+//STEP ONE
+function fetchAdress(address) {
+    const ids = get_checked_chexboxes();
+    const params = new URLSearchParams();
+    ids.forEach(id => params.append("id", id))
+    return  address + params.toString()
+}
+
+function get_checked_chexboxes()
+{
+    const markedCheckbox = document.querySelectorAll('input[type="checkbox"]:checked');
+    const ids = [];
+    markedCheckbox.forEach(box => ids.push(box.value));
+    return ids;
+}
+
 function show_id(address, func) {
     fetch(fetchAdress(address)).then(response => response.json())
         .then(data => data.forEach(obj => {
@@ -495,14 +527,6 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0;
 }
 
-function get_checked_chexboxes()
-{
-    const markedCheckbox = document.querySelectorAll('input[type="checkbox"]:checked');
-    const ids = [];
-    markedCheckbox.forEach(box => ids.push(box.value));
-    return ids;
-}
-
 
 function crateChoiceHtml(institution) {
 
@@ -512,19 +536,18 @@ function crateChoiceHtml(institution) {
         3: 'Lokalna Zbiórka'
     }
 
-    let div = document.querySelector('#institutions');
-    let button = document.querySelector('#form_button');
+    let div = document.querySelector('div#institutions');
+    let button = div.querySelector('div.form-group--buttons');
 
     const maindiv = document.createElement("div")
     maindiv.setAttribute("class", "form-group form-group--checkbox");
-    maindiv.setAttribute('id', 'single-institution');
+    // maindiv.setAttribute('id', 'single-institution');
     div.insertBefore(maindiv, button)
 
     const label = document.createElement("label")
     maindiv.appendChild(label)
 
     const input = document.createElement("input")
-    input.setAttribute("id", "institution_radio_checkbox")
     input.setAttribute("type", "radio")
     input.setAttribute("name", "institution")
     input.setAttribute("value", institution.pk)
@@ -550,55 +573,14 @@ function crateChoiceHtml(institution) {
 }
 
 function remove_all_institutions_html () {
-  document.querySelectorAll('#single-institution').forEach(div => {div.remove()})
+    let div = document.querySelector('div#institutions');
+    div.querySelectorAll('div.form-group--checkbox').forEach(div => {div.remove()})
 }
 
 function isInt(value) {
   return !isNaN(value) &&
          parseInt(Number(value)) == value &&
          !isNaN(parseInt(value, 10));
-}
-
-function checkBagsQuantity() {
-    const bags = document.querySelector('#bags_input').value
-    return (isInt(bags) && bags > 0)
-}
-
-function getBagsQuantity() {
-    const bags = document.querySelector('#bags_input').value
-    const categoriesSummary = document.querySelector('#categories-summary')
-    let bagsDeclination = 'worek'
-
-    if (bags > 1 && bags < 5) {
-        bagsDeclination = 'worki'
-    } else if (bags >= 5) {
-        bagsDeclination = 'worków'
-    }
-
-    categoriesSummary.innerHTML = `${bags} ${bagsDeclination} artykułów kategorii: ${categoriesSummary.innerHTML}`
-}
-
-
-function fetchAdress(address) {
-    const ids = get_checked_chexboxes();
-    const params = new URLSearchParams();
-    ids.forEach(id => params.append("id", id))
-    return  address + params.toString()
-}
-
-function getRadio() {
-    let markedCheckbox = document.querySelectorAll('input[type="radio"]:checked');
-    let radio_id = [];
-    markedCheckbox.forEach(box => radio_id.push(box.value));
-    return radio_id
-}
-
-function getInstitutionName(id) {
-    const div = document.querySelector('div#institutions')
-    const input = div.querySelector(`input[value="${id}"]`)
-    const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
-    const institutionSummary = document.querySelector('#institution_summary')
-    institutionSummary.innerHTML = `${institutionName}`
 }
 
 function getCategoriesNames(ids) {
@@ -616,18 +598,73 @@ function getCategoriesNames(ids) {
 
 }
 
-function getAdress() {
-    const adress = document.querySelector('[name="address"]').value
-    console.log(adress)
-    const city = document.querySelector('[name="city"]').value
-        console.log(city)
-    const postcode = document.querySelector('[name="zip_code"]').value
-        console.log(postcode)
-    const phone = document.querySelector('[name="phone_number"]').value
-        console.log(phone)
 
-    if (adress && city && postcode && phone) {
-        return [adress, city, postcode, phone]
+//STEP TWO
+function checkBagsQuantity() {
+    const bags = document.querySelector('input#bags').value
+    return (isInt(bags) && bags > 0)
+}
+
+function getBagsQuantity() {
+    const bags = document.querySelector('input#bags').value
+    const categoriesSummary = document.querySelector('span#categories-summary')
+    let bagsDeclination = 'worek'
+
+    if (bags > 1 && bags < 5) {
+        bagsDeclination = 'worki'
+    } else if (bags >= 5) {
+        bagsDeclination = 'worków'
+    }
+
+    categoriesSummary.innerHTML = `${bags} ${bagsDeclination} artykułów kategorii: ${categoriesSummary.innerHTML}`
+}
+
+
+//STEP THREE
+function getRadio() {
+    let markedCheckbox = document.querySelectorAll('input[type="radio"]:checked');
+    let radio_id = [];
+    markedCheckbox.forEach(box => radio_id.push(box.value));
+    return radio_id
+}
+
+function getInstitutionName(id) {
+    const div = document.querySelector('div#institutions')
+    const input = div.querySelector(`input[value="${id}"]`)
+    const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
+    const institutionSummary = document.querySelector('span#institution-summary')
+    institutionSummary.innerHTML = `${institutionName}`
+}
+
+
+//STEP FOUR
+function getAdress() {
+    let address = document.querySelector('input[name="address"]').value
+    const addressRegex = new RegExp(
+        /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*\s\d{0,5}\/?\d{0,5}[a-zA-Z]?)$/
+    );
+    address = addressRegex.test(address) ? address : false
+
+    let city = document.querySelector('input[name="city"]').value
+    const cityNameRegex = new RegExp(
+        /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*)$/
+    );
+    city = cityNameRegex.test(city) ? city : false
+
+    let postcode = document.querySelector('input[name="zip_code"]').value
+    const postcodeRegex = new RegExp(
+        /^((\d{2}-\d{3})|\d{5})$/
+    );
+    postcode = postcodeRegex.test(postcode) ? postcode : false
+
+    let phone = document.querySelector('input[name="phone_number"]').value
+    const phoneRegex = new RegExp(
+        /(?<!\w)(\(?(\+|00)?48\)?)?[ -]?\d{3}[ -]?\d{3}[ -]?\d{3}(?!\w)/
+    );
+    phone = phoneRegex.test(phone) ? phone : false
+
+    if (address && city && postcode && phone) {
+        return [address, city, postcode, phone]
     } else {
         return false
     }
@@ -635,9 +672,25 @@ function getAdress() {
 }
 
 function getDate() {
-    const date = document.querySelector('[name="pick_up_date"]').value
-    const time = document.querySelector('[name="pick_up_time"]').value
-    const moreInfo = document.querySelector('[name="pick_up_comment"]').value
+    let date = document.querySelector('input[name="pick_up_date"]').value
+    const dateToday = new Date();
+    const dateInput = new Date(date);
+    date = dateInput.getDate() >= dateToday.getDate() ? date : false
+
+    let time = document.querySelector('input[name="pick_up_time"]').value
+    const splitedTime = time.split(":");
+    const hour = splitedTime[0]
+    const minutes = splitedTime[1]
+    const timeNow = new Date();
+    const timeInput = new Date();
+    timeInput.setHours(hour, minutes, 0, 0)
+    if (dateInput.getDate() <= dateToday.getDate() && timeInput.getTime() < timeNow.getTime() ) {
+        time = false
+    }
+
+    let moreInfo = document.querySelector('textarea[name="pick_up_comment"]').value
+    moreInfo = moreInfo.trim()
+    moreInfo = moreInfo.length > 0  ? moreInfo : false
 
     if (date && time && moreInfo) {
         return [date, time, moreInfo]
@@ -648,8 +701,8 @@ function getDate() {
 
 function createAddressDateSummary(address, date) {
     const div = document.querySelector('div[data-step="5"]')
-    const addressList = div.querySelector('#address-list')
-    const dateList = div.querySelector('#date-list')
+    const addressList = div.querySelector('ul#address-list')
+    const dateList = div.querySelector('ul#date-list')
 
     address.forEach(item => {
         let li = document.createElement('li')
@@ -667,8 +720,8 @@ function createAddressDateSummary(address, date) {
 
 function removeAddressDateSummary() {
     const div = document.querySelector('div[data-step="5"]')
-    const addressList = div.querySelector('#address-list')
-    const dateList = div.querySelector('#date-list')
+    const addressList = div.querySelector('ul#address-list')
+    const dateList = div.querySelector('ul#date-list')
 
     Array.from(addressList.children).forEach(li => li.remove())
     Array.from(dateList.children).forEach(li => li.remove())
