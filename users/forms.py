@@ -105,7 +105,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         super().__init__(*args, **kwargs)
         self.fields['email'].widget = forms.EmailInput(attrs={'placeholder': 'E-mail'})
 
-    def clean(self):
+    def clean_email(self):
         data = self.cleaned_data
         email = data.get('email')
         if not User.objects.filter(email=email).exists():
