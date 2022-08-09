@@ -11,8 +11,11 @@
         <h2>Załóż konto</h2>
         <form action="#" method="post">
             {% csrf_token %}
+        <div class="form-group" style="text-align:center; justify-content: center; display: flex;">
+                {{ form.non_field_errors }}
+            </div>
             {% for field in form %}
-                <div class="form-group center" style="text-align:center">
+                <div class="form-group center" style="text-align:center; justify-content: center;">
                     {{ field.errors }}
                     {{ field }}
                 </div>

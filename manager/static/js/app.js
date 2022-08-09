@@ -209,17 +209,20 @@ document.addEventListener("DOMContentLoaded", function() {
                 const ids = get_checked_chexboxes();
                 if (ids.length === 0) {
                     this.currentStep--
+                    DisplayMessage('Nie dokonano wyboru.')
                 }
                 else {
                     const address = '/get-institution-api?'
                     fetch(fetchAdress(address)).then(response => response.json()).then(data => {
                             if(isEmpty(data)) {
                                 this.currentStep--
+                                DisplayMessage('Brak organizacji jednocześnie przyjmującej dary wszystkich wybranych kategorii.')
                             }
                             else {
                                 this.updateForm();
                                 show_id(address, crateChoiceHtml);
                                 getCategoriesNames(ids)
+                                ClearMessages()
                     }
                 })
                 }
@@ -230,8 +233,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (checkBagsQuantity()) {
                     this.updateForm()
                     getBagsQuantity()
+                    ClearMessages()
                 } else {
                     this.currentStep--
+                    DisplayMessage('Nieprawidłowa liczba worków.<br> Liczba worków musi być całkowita i dodatnia')
                 }
             }
 
@@ -239,24 +244,34 @@ document.addEventListener("DOMContentLoaded", function() {
             if (this.currentStep === 4) {
                 const radio_id = getRadio()
                 if(radio_id.length ===0 ) {
-                  this.currentStep--
+                    this.currentStep--
+                    DisplayMessage('Nie dokonano wyboru.')
+
                 }
                 else {
                     this.updateForm()
                     getInstitutionName(radio_id)
+                    ClearMessages()
                 }
             }
 
             /* Step 4 */
             if (this.currentStep === 5) {
                 const address = getAdress()
-                const date = getDate()
 
-                if (address && date) {
-                    this.updateForm()
-                    createAddressDateSummary(address, date)
+                if (address) {
+                    const date = getDate()
+                    if (date) {
+                        this.updateForm()
+                        createAddressDateSummary(address, date)
+                        ClearMessages()
+                    }
+                    else {
+                        this.currentStep--
+                    }
                 } else {
                     this.currentStep--
+                    /*Displaymessage is called in getAdress and getFunction to get appropriate message text*/
                 }
             }
 
@@ -639,43 +654,53 @@ function getInstitutionName(id) {
 
 //STEP FOUR
 function getAdress() {
-    let address = document.querySelector('input[name="address"]').value
+    const address = document.querySelector('input[name="address"]').value
     const addressRegex = new RegExp(
         /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*\s\d{0,5}\/?\d{0,5}[a-zA-Z]?)$/
     );
-    address = addressRegex.test(address) ? address : false
+    if (! addressRegex.test(address)) {
+        DisplayMessage('Nieprawidłowy adres.')
+        return false
+    }
 
     let city = document.querySelector('input[name="city"]').value
     const cityNameRegex = new RegExp(
         /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*)$/
     );
-    city = cityNameRegex.test(city) ? city : false
+    if (! cityNameRegex.test(city)) {
+        DisplayMessage('Nieprawidłowa nazwa miasta.')
+        return false
+    }
 
     let postcode = document.querySelector('input[name="zip_code"]').value
     const postcodeRegex = new RegExp(
         /^((\d{2}-\d{3})|\d{5})$/
     );
-    postcode = postcodeRegex.test(postcode) ? postcode : false
+    if (! postcodeRegex.test(postcode)) {
+        DisplayMessage('Nieprawidłowy kod pocztowy')
+        return false
+    }
 
     let phone = document.querySelector('input[name="phone_number"]').value
     const phoneRegex = new RegExp(
         /(?<!\w)(\(?(\+|00)?48\)?)?[ -]?\d{3}[ -]?\d{3}[ -]?\d{3}(?!\w)/
     );
-    phone = phoneRegex.test(phone) ? phone : false
-
-    if (address && city && postcode && phone) {
-        return [address, city, postcode, phone]
-    } else {
+    if (! phoneRegex.test(phone)) {
+        DisplayMessage('Nieprawidłowy numer telefony')
         return false
     }
 
+    return [address, city, postcode, phone]
 }
 
 function getDate() {
     let date = document.querySelector('input[name="pick_up_date"]').value
     const dateToday = new Date();
     const dateInput = new Date(date);
-    date = dateInput.getDate() >= dateToday.getDate() ? date : false
+    if ((dateInput.getDate() < dateToday.getDate()) || !date) {
+        DisplayMessage('Nieprawidłowa data odbioru<br>lub data odbioru jest z przeszłości.')
+        return false
+    }
 
     let time = document.querySelector('input[name="pick_up_time"]').value
     const splitedTime = time.split(":");
@@ -684,19 +709,20 @@ function getDate() {
     const timeNow = new Date();
     const timeInput = new Date();
     timeInput.setHours(hour, minutes, 0, 0)
-    if (dateInput.getDate() <= dateToday.getDate() && timeInput.getTime() < timeNow.getTime() ) {
-        time = false
+    if (dateInput.getDate() <= dateToday.getDate() && timeInput.getTime() < timeNow.getTime() || !time) {
+        DisplayMessage('Nieprawidłowa godzina odbioru<br>lub godzina odbioru jest z przeszłości.')
+        return false
     }
 
     let moreInfo = document.querySelector('textarea[name="pick_up_comment"]').value
     moreInfo = moreInfo.trim()
-    moreInfo = moreInfo.length > 0  ? moreInfo : false
-
-    if (date && time && moreInfo) {
-        return [date, time, moreInfo]
-    } else {
+    if  (moreInfo.length == 0) {
+        DisplayMessage('Nieprawidłowy komentarz.')
         return false
     }
+
+    return [date, time, moreInfo]
+
 }
 
 function createAddressDateSummary(address, date) {
@@ -727,3 +753,39 @@ function removeAddressDateSummary() {
     Array.from(dateList.children).forEach(li => li.remove())
 }
 
+
+function DisplayMessage(text) {
+    const mainDiv = document.querySelector('div.active').querySelector('.form-group--buttons')
+    let myDiv = mainDiv.querySelector('.mydiv')
+
+    if (myDiv) {
+        myDiv.remove()
+    }
+
+    const messageDiv = document.createElement('div')
+    messageDiv.setAttribute('class', 'mydiv')
+    mainDiv.appendChild(messageDiv)
+
+    const textDiv = document.createElement('div')
+    textDiv.setAttribute('class', 'message-text')
+    messageDiv.appendChild(textDiv)
+    textDiv.innerHTML = text
+
+    const closeDiv = document.createElement('div')
+    closeDiv.setAttribute('class', 'message-close')
+    closeDiv.innerHTML = "&#215"
+    messageDiv.appendChild(closeDiv)
+
+    myDiv = mainDiv.querySelector('.mydiv')
+    closeDiv.addEventListener('click', () => myDiv.remove())
+}
+
+function ClearMessages() {
+    const mainDivs = document.querySelectorAll('.form-group--buttons')
+
+    mainDivs.forEach(mainDiv => {
+        Array.from(mainDiv.querySelectorAll('div.mydiv')).forEach(div => div.remove())
+        }
+    )
+
+}

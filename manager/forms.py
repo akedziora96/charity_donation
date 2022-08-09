@@ -17,7 +17,7 @@ class DonationAddForm(forms.ModelForm):
     def clean_pick_up_date(self):
         pick_up_date = self.cleaned_data.get('pick_up_date')
         if not pick_up_date >= timezone.now().date():
-            raise ValidationError(_('Podana data jest z przeszłości.'), code='date_from_past')
+            raise ValidationError(_('Niepoprawna data. Wprowadzona data jest z przeszłości.'), code='date_from_past')
 
         return pick_up_date
 
@@ -27,10 +27,14 @@ class DonationAddForm(forms.ModelForm):
         pick_up_time = cleaned_data.get('pick_up_time')
 
         if not pick_up_date:
-            raise ValidationError(_('Podana data jest z przeszłości.'), code='date_from_past')
+            raise ValidationError(
+                _('Nieprawidłowa data odbioru. Wprowadzona data jest z przeszłości.'), code='date_from_past'
+            )
 
         if pick_up_date <= timezone.now().date() and pick_up_time < timezone.now().time():
-            raise ValidationError(_('Podana godzina jest z przeszłości.'), code='hour_from_past')
+            raise ValidationError(
+                _('Nieprawidłowa godzina odbioru. Wprowadzona godzina jest z przeszłości.'), code='hour_from_past'
+            )
 
         return cleaned_data
 
