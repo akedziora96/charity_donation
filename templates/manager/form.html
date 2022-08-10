@@ -76,10 +76,6 @@
 
                     <div class="form-group form-group--buttons">
                         <button id=category-submit type="button" class="btn next-step">Dalej</button>
-{#                        <div class="mydiv">#}
-{#                            <div>text</div>#}
-{#                            <div class="quit-button">&#215;</div>#}
-{#                        </div>#}
                     </div>
 
                 </div>
@@ -177,8 +173,10 @@
                             <ul>
                                 <li>
                                     <span class="icon icon-bag"></span>
-                                    <span id="categories-summary" class="summary--text"
-                                    ></span
+                                    <span id="categories-summary" class="summary--text">
+                                    <span id="bags"></span>
+                                    <span id="categories"></span>
+                                    </span
                                     >
                                 </li>
 
@@ -191,7 +189,7 @@
                             </ul>
                         </div>
 
-                        <div class="form-section form-section--columns">
+                        <div class="form-section form-section--columns" style="max-width: 450px">
                             <div class="form-section--column">
                                 <h4>Adres odbioru:</h4>
                                 <ul id="address-list">
@@ -211,7 +209,7 @@
                     <div class="form-group form-group--buttons">
                         <button type="button" class="btn prev-step">Wstecz</button>
                         <button id="donation-form-submit" type="submit" class="btn"
-                                onClick="document.donation-form.submit();return false">Potwierdzam</button>
+                               style="min-width: 153.2px">Potwierdzam</button>
                     </div>
                 </div>
             </form>
