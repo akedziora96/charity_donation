@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     ClearMessages()
                 } else {
                     this.currentStep--
-                    DisplayMessage('Nieprawidłowa liczba worków.<br> Liczba worków musi być całkowita i dodatnia')
+                    DisplayMessage('Nieprawidłowa liczba worków.<br> Liczba worków musi być całkowita i dodatnia.')
                 }
             }
 
@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", function() {
       });
 
       // Form submit
-      this.$form.querySelector("form").addEventListener("submit", e => this.submit(e));
+      this.$form.querySelector('form').addEventListener("submit", e => this.submit(e));
       // TODO: in form.html, there is a onclick function to submit form. Move it here.
     }
 
@@ -333,8 +333,38 @@ document.addEventListener("DOMContentLoaded", function() {
      */
     submit(e) {
       e.preventDefault();
-      this.currentStep++;
-      this.updateForm();
+        const formData = new FormData(this.$form.querySelector('form'));
+        const button = this.$form.querySelector('button#donation-form-submit')
+
+
+        document.body.style.cursor = 'wait';
+        document.querySelectorAll('button').forEach(button => button.style.cursor='wait')
+
+        button.setAttribute('disabled', 'disabled')
+        button.removeAttribute('display')
+        button.innerHTML = 'Oczekiwanie'
+
+
+        fetch('/save-donation-api/', {
+            method: 'post',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.replace(data.url);
+                } else if (data.status === 'error') {
+                    setTimeout(function() {
+                         DisplayMessage('Wystąpił błąd.')
+                        button.removeAttribute('disabled')
+                        button.innerHTML = 'Potwierdzam'
+                        document.body.style.cursor = 'default'
+                        document.querySelectorAll('button').forEach(button => button.style.cursor='pointer')
+                    }, 200)
+                }
+            })
+            .catch(err => console.log(err))
+
     }
   }
   const form = document.querySelector(".form--steps");
@@ -608,8 +638,8 @@ function getCategoriesNames(ids) {
     checked_categories.forEach(input => {
         categoriesNames.push(input.nextElementSibling.nextElementSibling.innerHTML)
     })
-    const categoriesSummary = document.querySelector('#categories-summary')
-    categoriesSummary.innerHTML = categoriesNames.join(', ').toLowerCase()
+    const spanCategories = document.querySelector('span#categories')
+    spanCategories.innerHTML = categoriesNames.join(', ').toLowerCase()
 
 }
 
@@ -622,7 +652,7 @@ function checkBagsQuantity() {
 
 function getBagsQuantity() {
     const bags = document.querySelector('input#bags').value
-    const categoriesSummary = document.querySelector('span#categories-summary')
+    const spanBags = document.querySelector('span#bags')
     let bagsDeclination = 'worek'
 
     if (bags > 1 && bags < 5) {
@@ -631,7 +661,7 @@ function getBagsQuantity() {
         bagsDeclination = 'worków'
     }
 
-    categoriesSummary.innerHTML = `${bags} ${bagsDeclination} artykułów kategorii: ${categoriesSummary.innerHTML}`
+    spanBags.innerHTML = `${bags} ${bagsDeclination} artykułów kategorii: `
 }
 
 
@@ -676,10 +706,10 @@ function getAdress() {
     const postcodeRegex = new RegExp(
         /^((\d{2}-\d{3})|\d{5})$/
     );
-    if (! postcodeRegex.test(postcode)) {
-        DisplayMessage('Nieprawidłowy kod pocztowy')
-        return false
-    }
+    // if (! postcodeRegex.test(postcode)) {
+    //     DisplayMessage('Nieprawidłowy kod pocztowy')
+    //     return false
+    // }
 
     let phone = document.querySelector('input[name="phone_number"]').value
     const phoneRegex = new RegExp(
@@ -755,36 +785,35 @@ function removeAddressDateSummary() {
 
 
 function DisplayMessage(text) {
-    const mainDiv = document.querySelector('div.active').querySelector('.form-group--buttons')
-    let myDiv = mainDiv.querySelector('.mydiv')
+    const parentDiv = document.querySelector('div.active').querySelector('.form-group--buttons')
+    const messageDiv = parentDiv.querySelector('div.message')
 
-    if (myDiv) {
-        myDiv.remove()
+    if (messageDiv) {
+        messageDiv.remove()
     }
 
-    const messageDiv = document.createElement('div')
-    messageDiv.setAttribute('class', 'mydiv')
-    mainDiv.appendChild(messageDiv)
+    const newMessageDiv = document.createElement('div')
+    newMessageDiv.setAttribute('class', 'message')
+    parentDiv.appendChild(newMessageDiv)
 
     const textDiv = document.createElement('div')
     textDiv.setAttribute('class', 'message-text')
-    messageDiv.appendChild(textDiv)
+    newMessageDiv.appendChild(textDiv)
     textDiv.innerHTML = text
 
     const closeDiv = document.createElement('div')
     closeDiv.setAttribute('class', 'message-close')
     closeDiv.innerHTML = "&#215"
-    messageDiv.appendChild(closeDiv)
+    newMessageDiv.appendChild(closeDiv)
 
-    myDiv = mainDiv.querySelector('.mydiv')
-    closeDiv.addEventListener('click', () => myDiv.remove())
+    closeDiv.addEventListener('click', () => newMessageDiv.remove())
 }
 
 function ClearMessages() {
-    const mainDivs = document.querySelectorAll('.form-group--buttons')
+    const parentDivs = document.querySelectorAll('.form-group--buttons')
 
-    mainDivs.forEach(mainDiv => {
-        Array.from(mainDiv.querySelectorAll('div.mydiv')).forEach(div => div.remove())
+    parentDivs.forEach(parentDiv => {
+        Array.from(parentDiv.querySelectorAll('div.message')).forEach(messageDiv => messageDiv.remove())
         }
     )
 

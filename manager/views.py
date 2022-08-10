@@ -2,9 +2,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers import serialize
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views import View
 from manager.forms import DonationAddForm, LoggedUserMailContactForm, AnnonymousMailContactForm
 from users.models import User
@@ -41,46 +41,12 @@ class LandingPage(View):
         return render(request, 'manager/index.html', context)
 
 
-class AddDonation(LoginRequiredMixin, View):
+class DonationAddView(LoginRequiredMixin, View):
     login_url = reverse_lazy('login')
-
-    def send_confirmation_mail(self, user, donation):
-        subject = 'Potwierdzenie otrzymania darowizny'
-        email_body = f'{user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny. ' \
-                     f'Podsumowanie:\nOrganizacja obdarowana:{donation.institution}\nRzeczy przekazane:\n' \
-                     f'{donation.quantity} worków: {donation.categories}\nMiejsce odbioru: {donation.address}\n' \
-                     f'Miasto: {donation.city}\nKod pocztowy: {donation.zip_code}\nNr Twojego telefonu: ' \
-                     f'{donation.phone_number}\nData odbioru: {donation.pick_up_date}\nGodzina odbioru: ' \
-                     f'{donation.pick_up_time}\nKomentarz do odbioru: {donation.pick_up_comment}\n\n' \
-                     f'Pozdrawiamy,\nAdministracja strony'
-
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [user.email]
-        send_mail(subject, email_body, email_from, recipient_list)
 
     def get(self, request):
         categories = Category.objects.all()
         return render(request, 'manager/form.html', {'categories': categories})
-
-    def post(self, request):
-        form = DonationAddForm(request.POST)
-
-        if form.is_valid():
-            user = request.user
-
-            donation = form.save(commit=False)
-            donation.user = user
-            donation.save()
-
-            categories = form.cleaned_data.get('categories')
-            donation.categories.set(categories)
-            donation.save()
-
-            self.send_confirmation_mail(user=user, donation=donation)
-
-            return render(request, 'manager/form_confirmation.html')
-
-        return render(request, 'manager/form_failure.html')
 
 
 class SendContactMailView(View):
@@ -100,7 +66,7 @@ class SendContactMailView(View):
         send_mail(subject, email_body, email_from, recipient_list)
 
     def get(self, request):
-        url = reverse_lazy('landing-page') + '#contact'
+        url = reverse('landing-page') + '#contact'
         return redirect(url)
 
     def post(self, request):
@@ -135,6 +101,11 @@ class SendContactMailView(View):
             return render(request, 'manager/form_contact_confirmation.html', {'name': first_name})
 
         return render(request, 'manager/form_contact_failure.html')
+
+
+class ConfirmationView(View):
+    def get(self, request):
+        return render(request, 'manager/form_confirmation.html')
 
 
 # API VIEWS
@@ -187,3 +158,39 @@ class GetInstitutionApiView(View):
         return HttpResponse(data, content_type="application/json")
 
 
+class SaveDonationApiView(View):
+    def send_confirmation_mail(self, user, donation):
+        subject = 'Potwierdzenie otrzymania darowizny'
+        email_body = f'{user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny. ' \
+                     f'Podsumowanie:\nOrganizacja obdarowana:{donation.institution}\nRzeczy przekazane:\n' \
+                     f'{donation.quantity} worków: {donation.categories}\nMiejsce odbioru: {donation.address}\n' \
+                     f'Miasto: {donation.city}\nKod pocztowy: {donation.zip_code}\nNr Twojego telefonu: ' \
+                     f'{donation.phone_number}\nData odbioru: {donation.pick_up_date}\nGodzina odbioru: ' \
+                     f'{donation.pick_up_time}\nKomentarz do odbioru: {donation.pick_up_comment}\n\n' \
+                     f'Pozdrawiamy,\nAdministracja strony'
+
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [user.email]
+        send_mail(subject, email_body, email_from, recipient_list)
+
+    def post(self, request):
+        form = DonationAddForm(request.POST)
+
+        if form.is_valid():
+            user = request.user
+
+            donation = form.save(commit=False)
+            donation.user = user
+            donation.save()
+
+            categories = form.cleaned_data.get('categories')
+            donation.categories.set(categories)
+            donation.save()
+
+            self.send_confirmation_mail(user=user, donation=donation)
+
+            # data = serialize('json', Donation.objects.filter(id=donation.id), use_natural_foreign_keys=True)
+            # return HttpResponse(data, content_type="application/json")
+            return JsonResponse({'status': 'success', 'url': reverse('confirm-donation')})
+
+        return JsonResponse({'status': 'error'})
