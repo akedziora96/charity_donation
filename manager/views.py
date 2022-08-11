@@ -5,12 +5,15 @@ from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy, reverse
+from django.utils import timezone
 from django.views import View
 from manager.forms import DonationAddForm, LoggedUserMailContactForm, AnnonymousMailContactForm
 from users.models import User
 from .models import Donation, Institution, Category
 from django.core.mail import send_mail
 from django.conf import settings
+
+from .templatetags.filters import get_categories_names
 
 PAGINATION_OBJECTS_PER_PAGE = 1
 
@@ -49,63 +52,14 @@ class DonationAddView(LoginRequiredMixin, View):
         return render(request, 'manager/form.html', {'categories': categories})
 
 
-class SendContactMailView(View):
-    def send_mail_to_user(self, first_name, last_name, email):
-        subject = 'Potwierdzenie otrzymania wiadomości'
-        email_body = f'{first_name} {last_name}, dziękujemy za kontakt. ' \
-                     f'Administrator odezwie się do Ciebie najszybciej jak to możliwe'
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [email]
-        send_mail(subject, email_body, email_from, recipient_list)
-
-    def send_mail_to_admins(self, first_name, last_name, email, user_message):
-        subject = f'Wiadomość od {first_name} {last_name} ({email})'
-        email_body = f'Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}".'
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [user.email for user in User.objects.filter(is_superuser=True)]
-        send_mail(subject, email_body, email_from, recipient_list)
-
-    def get(self, request):
-        url = reverse('landing-page') + '#contact'
-        return redirect(url)
-
-    def post(self, request):
-        user = request.user
-
-        if not user.is_authenticated:
-            form = AnnonymousMailContactForm(request.POST)
-        else:
-            form = LoggedUserMailContactForm(request.POST)
-
-        if form.is_valid():
-            data = form.cleaned_data
-
-            if not user.is_authenticated:
-                first_name = data.get('first_name')
-                last_name = data.get('last_name')
-                email = data.get('email')
-            else:
-                first_name = user.first_name
-                last_name = user.last_name
-                email = user.email
-
-            user_message = data.get('message')
-
-            self.send_mail_to_user(
-                first_name=first_name, last_name=last_name, email=email
-            )
-            self.send_mail_to_admins(
-                first_name=first_name, last_name=last_name, email=email, user_message=user_message
-            )
-
-            return render(request, 'manager/form_contact_confirmation.html', {'name': first_name})
-
-        return render(request, 'manager/form_contact_failure.html')
-
-
-class ConfirmationView(View):
+class DonationConfirmationView(View):
     def get(self, request):
         return render(request, 'manager/form_confirmation.html')
+
+
+class ContactConfirmationView(View):
+    def get(self, request):
+        return render(request, 'manager/form_contact_confirmation.html')
 
 
 # API VIEWS
@@ -161,24 +115,31 @@ class GetInstitutionApiView(View):
 class SaveDonationApiView(View):
     def send_confirmation_mail(self, user, donation):
         subject = 'Potwierdzenie otrzymania darowizny'
-        email_body = f'{user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny. ' \
-                     f'Podsumowanie:\nOrganizacja obdarowana:{donation.institution}\nRzeczy przekazane:\n' \
-                     f'{donation.quantity} worków: {donation.categories}\nMiejsce odbioru: {donation.address}\n' \
-                     f'Miasto: {donation.city}\nKod pocztowy: {donation.zip_code}\nNr Twojego telefonu: ' \
-                     f'{donation.phone_number}\nData odbioru: {donation.pick_up_date}\nGodzina odbioru: ' \
-                     f'{donation.pick_up_time}\nKomentarz do odbioru: {donation.pick_up_comment}\n\n' \
-                     f'Pozdrawiamy,\nAdministracja strony'
+        email_body = f"""
+                        {user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny. 
+                        Podsumowanie:\n
+                        Organizacja obdarowana:{donation.institution}\n
+                        Przekazano {donation.quantity} worków: {get_categories_names(donation)}\n
+                        Miejsce odbioru: {donation.address}\n
+                        Miasto: {donation.city}\n
+                        Kod pocztowy: {donation.zip_code}\n
+                        Nr Twojego telefonu: {donation.phone_number}\n
+                        Data odbioru: {donation.pick_up_date}\n
+                        Godzina odbioru: {donation.pick_up_time}\n
+                        Komentarz do odbioru: {donation.pick_up_comment}\n\n
+                        Pozdrawiamy,\n
+                        Administracja strony
+                     """
 
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [user.email]
         send_mail(subject, email_body, email_from, recipient_list)
 
     def post(self, request):
-        form = DonationAddForm(request.POST)
+        user = request.user
+        form = DonationAddForm(request.POST, user=user)
 
         if form.is_valid():
-            user = request.user
-
             donation = form.save(commit=False)
             donation.user = user
             donation.save()
@@ -189,8 +150,76 @@ class SaveDonationApiView(View):
 
             self.send_confirmation_mail(user=user, donation=donation)
 
-            # data = serialize('json', Donation.objects.filter(id=donation.id), use_natural_foreign_keys=True)
-            # return HttpResponse(data, content_type="application/json")
             return JsonResponse({'status': 'success', 'url': reverse('confirm-donation')})
 
-        return JsonResponse({'status': 'error'})
+        errors_messages = {field: errors for field, errors in form.errors.items()}
+
+        is_double_sent = form.has_error('__all__', 'double_sent')
+        is_date_from_past = form.has_error('__all__', 'date_from_past')
+        is_hour_from_past = form.has_error('__all__', 'hour_from_past')
+
+        if is_double_sent and not is_date_from_past and not is_hour_from_past:
+            error_message_to_json = errors_messages.get('__all__')
+        elif is_date_from_past and not is_hour_from_past and not is_double_sent:
+            error_message_to_json = errors_messages.get('__all__')
+        elif is_hour_from_past and not is_date_from_past and not is_double_sent:
+            error_message_to_json = errors_messages.get('__all__')
+        else:
+            error_message_to_json = 'Błąd walidacji formularza.<br>Wykonaj reset (CTRL+F5) przeglądarki.'
+
+        return JsonResponse({'status': 'error', 'error_message': error_message_to_json})
+
+
+class SendContactMailApiView(View):
+    def send_mail_to_user(self, first_name, last_name, email):
+        subject = 'Potwierdzenie otrzymania wiadomości'
+        email_body = f"""
+                        {first_name} {last_name}, dziękujemy za kontakt.\n 
+                        Administrator odezwie się do Ciebie najszybciej jak to możliwe.
+                     """
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+        send_mail(subject, email_body, email_from, recipient_list)
+
+    def send_mail_to_admins(self, first_name, last_name, email, user_message):
+        subject = f'Wiadomość od {first_name} {last_name} ({email})'
+        email_body = f"""
+                        Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}".
+                     """
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [user.email for user in User.objects.filter(is_superuser=True)]
+        send_mail(subject, email_body, email_from, recipient_list)
+
+    def post(self, request):
+        user = request.user
+
+        if not user.is_authenticated:
+            form = AnnonymousMailContactForm(request.POST)
+        else:
+            form = LoggedUserMailContactForm(request.POST)
+
+        if form.is_valid():
+            data = form.cleaned_data
+
+            if not user.is_authenticated:
+                first_name = data.get('first_name')
+                last_name = data.get('last_name')
+                email = data.get('email')
+
+            else:
+                first_name = user.first_name
+                last_name = user.last_name
+                email = user.email
+
+            user_message = data.get('message')
+
+            self.send_mail_to_user(
+                first_name=first_name, last_name=last_name, email=email
+            )
+            self.send_mail_to_admins(
+                first_name=first_name, last_name=last_name, email=email, user_message=user_message
+            )
+
+            return JsonResponse({'status': 'success', 'url': reverse('confirm-contact')})
+        fields_errors = {field: ','.join(errors) for field, errors in form.errors.items()}
+        return JsonResponse({'status': 'error', 'fields_errors': fields_errors})

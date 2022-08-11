@@ -8,12 +8,6 @@
         {% include "navbar.html" %}
         <div class="slogan container container--90" style="text-align:center; justify-content: center; display: flex;">>
             <h2>
-                {% if user.is_authenticated %}
-                    Cześć {{ user.first_name }}!
-                {% else %}
-                    Cześć {{ name }}!
-                {% endif %}
-                <br>
                 Dziękujemy za przesłanie wiadomości.
                 <br>
                 Odpowiemy na nią najszybciej jak to możliwe.
