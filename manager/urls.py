@@ -20,12 +20,13 @@ urlpatterns = [
     path('', views.LandingPage.as_view(), name='landing-page'),
 
     path('add-donation/', views.DonationAddView.as_view(), name='add-donation'),
-    path('add-donation/confirmation/', views.ConfirmationView.as_view(), name='confirm-donation'),
-    path('contact-us/', views.SendContactMailView.as_view(), name='contact'),
+    path('add-donation/confirmation/', views.DonationConfirmationView.as_view(), name='confirm-donation'),
+    path('contact-us/confirmation', views.ContactConfirmationView.as_view(), name='confirm-contact'),
 
     # API's views
     path('get-institution-api/', views.GetInstitutionApiView.as_view(), name='institution-api'),
     path('get-donation-api/', views.GetDonationApiView.as_view(), name='donation-api'),
     path('get-page-api/', views.PaginationApiView.as_view(), name='pagination-api'),
     path('save-donation-api/', views.SaveDonationApiView.as_view(), name='save-donation-api'),
+    path('contact-us-api/', views.SendContactMailApiView.as_view(), name='contact-api'),
 ]

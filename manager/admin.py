@@ -21,7 +21,7 @@ class InstitutionAdmin(admin.ModelAdmin):
 class DonationAdmin(admin.ModelAdmin):
     add_form = DonationAddForm
     form = DonationAddForm
-    list_display = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
-    list_filter = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken')
-    search_fields = ('user', 'institution')
+    list_display = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken', 'created')
+    list_filter = ('user', 'quantity', 'institution', 'pick_up_date', 'pick_up_time', 'is_taken', 'created')
+    search_fields = ('user', 'institution', 'created')
     date_hierarchy = 'pick_up_date'

@@ -63,6 +63,7 @@ class Donation(models.Model):
         blank=True, null=True, default=None, verbose_name='użytkownik'
     )
     is_taken = models.BooleanField(blank=True, default=False)
+    created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = _('Darowizna')

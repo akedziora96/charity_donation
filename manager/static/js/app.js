@@ -334,15 +334,8 @@ document.addEventListener("DOMContentLoaded", function() {
     submit(e) {
       e.preventDefault();
         const formData = new FormData(this.$form.querySelector('form'));
-        const button = this.$form.querySelector('button#donation-form-submit')
-
-
-        document.body.style.cursor = 'wait';
-        document.querySelectorAll('button').forEach(button => button.style.cursor='wait')
-
-        button.setAttribute('disabled', 'disabled')
-        button.removeAttribute('display')
-        button.innerHTML = 'Oczekiwanie'
+        const submitButton = document.querySelector('button#donation-form-submit');
+        makeSubmitButtonWait(submitButton)
 
 
         fetch('/save-donation-api/', {
@@ -354,13 +347,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.status === 'success') {
                     window.location.replace(data.url);
                 } else if (data.status === 'error') {
-                    setTimeout(function() {
-                         DisplayMessage('Wystąpił błąd.')
-                        button.removeAttribute('disabled')
-                        button.innerHTML = 'Potwierdzam'
-                        document.body.style.cursor = 'default'
-                        document.querySelectorAll('button').forEach(button => button.style.cursor='pointer')
-                    }, 200)
+                    setTimeout(function () {
+                         DisplayMessage(data.error_message)
+                         makeSubmitButtonDefault(submitButton)
+                    },200)
                 }
             })
             .catch(err => console.log(err))
@@ -379,6 +369,38 @@ document.addEventListener("DOMContentLoaded", function() {
       )
   })
     }
+
+    const contactForm = document.querySelector('form.form--contact')
+    contactForm.addEventListener("submit", e => submitConntact(e));
+
+
+    function submitConntact(e) {
+        console.log(this)
+        e.preventDefault();
+        const contactSubmitButton = document.querySelector('button#contact-form-submit')
+        makeSubmitButtonWait(contactSubmitButton)
+
+        const contactForm = document.querySelector('form.form--contact')
+        const contactFormData = new FormData(contactForm);
+
+        fetch('/contact-us-api/', {
+            method: 'post',
+            body: contactFormData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.replace(data.url);
+                } else if (data.status === 'error') {
+                    setTimeout(function () {
+                        displayErrors(data)
+                        makeSubmitButtonDefault(contactSubmitButton)
+                    },200)
+                }
+            })
+            .catch(err => console.log(err))
+    }
+
 });
 
 
@@ -706,10 +728,10 @@ function getAdress() {
     const postcodeRegex = new RegExp(
         /^((\d{2}-\d{3})|\d{5})$/
     );
-    // if (! postcodeRegex.test(postcode)) {
-    //     DisplayMessage('Nieprawidłowy kod pocztowy')
-    //     return false
-    // }
+    if (! postcodeRegex.test(postcode)) {
+        DisplayMessage('Nieprawidłowy kod pocztowy')
+        return false
+    }
 
     let phone = document.querySelector('input[name="phone_number"]').value
     const phoneRegex = new RegExp(
@@ -817,4 +839,38 @@ function ClearMessages() {
         }
     )
 
+}
+
+function makeSubmitButtonWait(button) {
+    button.innerHTML = 'Oczekiwanie'
+    document.body.style.cursor = 'wait';
+    document.querySelectorAll('button').forEach(button => button.style.cursor='wait')
+
+    document.querySelectorAll('button')
+        .forEach(button => button.setAttribute('disabled', 'disabled'))
+    document.querySelectorAll('a')
+    .forEach(a => a.setAttribute('disabled', 'disabled'))
+}
+
+function makeSubmitButtonDefault(button) {
+    button.innerHTML = 'Potwierdzam'
+    document.body.style.cursor = 'default'
+    document.querySelectorAll('button').forEach(button => button.style.cursor='pointer')
+
+    document.querySelectorAll('button')
+    .forEach(button => button.removeAttribute('disabled'))
+    document.querySelectorAll('a')
+    .forEach(a => a.removeAttribute('disabled'))
+}
+
+function displayErrors(data) {
+    const keys = Object.keys(data.fields_errors)
+        keys.forEach(singleKey => {
+        const invalidElement = document.querySelector('form.form--contact').querySelector(`input[name="${singleKey}"]`)
+        invalidElement.value = ''
+        invalidElement.placeholder = data.fields_errors[singleKey]
+        invalidElement.style.setProperty("--c", "red")
+        invalidElement.style.setProperty("--o", "1")
+        invalidElement.style.setProperty("--w", "bold")
+    })
 }
