@@ -746,22 +746,31 @@ function getAdress() {
 }
 
 function getDate() {
-    let date = document.querySelector('input[name="pick_up_date"]').value
     const dateToday = new Date();
+    dateToday.setHours(0,0,0,0)
+
+    let date = document.querySelector('input[name="pick_up_date"]').value
     const dateInput = new Date(date);
-    if ((dateInput.getDate() < dateToday.getDate()) || !date) {
+    dateInput.setHours(0,0,0,0)
+
+    console.log(dateToday, dateInput)
+    if ((dateInput < dateToday) || !date) {
         DisplayMessage('Nieprawidłowa data odbioru<br>lub data odbioru jest z przeszłości.')
         return false
     }
+
+    const timeNow = new Date();
 
     let time = document.querySelector('input[name="pick_up_time"]').value
     const splitedTime = time.split(":");
     const hour = splitedTime[0]
     const minutes = splitedTime[1]
-    const timeNow = new Date();
     const timeInput = new Date();
     timeInput.setHours(hour, minutes, 0, 0)
-    if (dateInput.getDate() <= dateToday.getDate() && timeInput.getTime() < timeNow.getTime() || !time) {
+
+    console.log(timeInput.getTime(), timeNow.getTime() )
+    console.log(dateInput >= dateToday)
+    if (dateInput <= dateToday && timeInput.getTime() < timeNow.getTime() || !time) {
         DisplayMessage('Nieprawidłowa godzina odbioru<br>lub godzina odbioru jest z przeszłości.')
         return false
     }
