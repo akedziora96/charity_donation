@@ -17,7 +17,7 @@ from .templatetags.filters import get_categories_names
 PAGINATION_OBJECTS_PER_PAGE = 1
 
 
-class LandingPage(View):
+class LandingPageView(View):
     def first_page(self, institution_type):
         paginator = Paginator(Institution.objects.filter(type=institution_type), PAGINATION_OBJECTS_PER_PAGE)
         return paginator.page(1)
@@ -51,7 +51,9 @@ class DonationAddView(LoginRequiredMixin, View):
         return render(request, 'manager/form.html', {'categories': categories})
 
 
-class DonationConfirmationView(View):
+class DonationConfirmationView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def get(self, request):
         return render(request, 'manager/form_confirmation.html')
 
@@ -111,7 +113,9 @@ class GetInstitutionApiView(View):
         return HttpResponse(data, content_type='application/json')
 
 
-class SaveDonationApiView(View):
+class SaveDonationApiView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def send_confirmation_mail(self, user, donation):
         subject = 'Potwierdzenie otrzymania darowizny'
         email_body = f'{user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny.\n\n'\

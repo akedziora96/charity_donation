@@ -17,7 +17,7 @@ from django.urls import path
 from manager import views
 
 urlpatterns = [
-    path('', views.LandingPage.as_view(), name='landing-page'),
+    path('', views.LandingPageView.as_view(), name='landing-page'),
 
     path('add-donation/', views.DonationAddView.as_view(), name='add-donation'),
     path('add-donation/confirmation/', views.DonationConfirmationView.as_view(), name='confirm-donation'),
