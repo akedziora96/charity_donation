@@ -15,21 +15,19 @@ fake = Faker("pl_PL")
 @pytest.fixture
 def new_user_factory():
     def create_app_user(
-            username: str,
-            password: str = None,
+            email: str,
+            password: str = 'testpassword',
             first_name: str = "firstname",
             last_name: str = "lastname",
-            email: str = "test@test.com",
             is_staff: bool = False,
             is_superuser: bool = False,
             is_active: bool = True,
     ):
         user = User.objects.create_user(
-            username=username,
+            email=email,
             password=password,
             first_name=first_name,
             last_name=last_name,
-            email=email,
             is_staff=is_staff,
             is_superuser=is_superuser,
             is_active=is_active,
@@ -41,17 +39,17 @@ def new_user_factory():
 
 @pytest.fixture
 def user(new_user_factory):
-    return new_user_factory(username='testuser', password='testpassword')
+    return new_user_factory(email='user@test.pl')
 
 
 @pytest.fixture
 def inactive_user(new_user_factory):
-    return new_user_factory(username='testuser', password='testpassword', is_active=False)
+    return new_user_factory(email='inactiveuser@test.pl', password='testpassword', is_active=False)
 
 
 @pytest.fixture
 def superuser(new_user_factory):
-    return new_user_factory(username='testuser', password='testpassword', is_superuser=False, is_staff=False)
+    return new_user_factory(email='adminuser@test.pl', password='testpassword', is_superuser=False, is_staff=False)
 
 
 @pytest.fixture
@@ -60,26 +58,42 @@ def category():
 
 
 @pytest.fixture
-def institution(category):
-    new_institution = Institution.objects.create(name='testinstitution', description='Lorem Ipsum', type='1')
-    new_institution.categories.set(category)
-    new_institution.save()
-    return new_institution
+def foundation(category):
+    new_foundation = Institution.objects.create(name='testfoundation', description='Lorem Ipsum', type='1')
+    new_foundation.categories.add(category)
+    new_foundation.save()
+    return new_foundation
 
 
 @pytest.fixture
-def donation(institution, user, category):
+def ngo(category):
+    new_ngo = Institution.objects.create(name='testngo', description='Lorem Ipsum', type='2')
+    new_ngo.categories.add(category)
+    new_ngo.save()
+    return new_ngo
+
+
+@pytest.fixture
+def collection(category):
+    new_collection = Institution.objects.create(name='testcollection', description='Lorem Ipsum', type='3')
+    new_collection.categories.add(category)
+    new_collection.save()
+    return new_collection
+
+
+@pytest.fixture
+def donation(foundation, user, category):
     donation = Donation.objects.create(
         quantity=10,
-        institution=institution,
+        institution=foundation,
         address='test street 100',
         phone_number='+99 999 999 999',
         zip_code='99-999',
-        pick_up_date='12-12-1212',
+        pick_up_date='2012-12-12',
         pick_up_time='12:00',
         pick_up_comment='Lorem Ipsum',
         user=user
     )
-    donation.categories.set(category)
+    donation.categories.add(category)
     donation.save()
     return donation
