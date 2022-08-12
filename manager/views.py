@@ -3,9 +3,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.serializers import serialize
 from django.db.models import Sum
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy, reverse
-from django.utils import timezone
 from django.views import View
 from manager.forms import DonationAddForm, LoggedUserMailContactForm, AnnonymousMailContactForm
 from users.models import User
@@ -115,21 +114,19 @@ class GetInstitutionApiView(View):
 class SaveDonationApiView(View):
     def send_confirmation_mail(self, user, donation):
         subject = 'Potwierdzenie otrzymania darowizny'
-        email_body = f"""
-                        {user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny. 
-                        Podsumowanie:\n
-                        Organizacja obdarowana:{donation.institution}\n
-                        Przekazano {donation.quantity} worków: {get_categories_names(donation)}\n
-                        Miejsce odbioru: {donation.address}\n
-                        Miasto: {donation.city}\n
-                        Kod pocztowy: {donation.zip_code}\n
-                        Nr Twojego telefonu: {donation.phone_number}\n
-                        Data odbioru: {donation.pick_up_date}\n
-                        Godzina odbioru: {donation.pick_up_time}\n
-                        Komentarz do odbioru: {donation.pick_up_comment}\n\n
-                        Pozdrawiamy,\n
-                        Administracja strony
-                     """
+        email_body = f'{user.first_name} {user.last_name}, dziękujemy za przekazanie darowizny.\n\n'\
+                     f'Podsumowanie:\n'\
+                     f'Organizacja obdarowana: {donation.institution}\n'\
+                     f'Przekazano {donation.quantity} worków: {get_categories_names(donation)}\n'\
+                     f'Miejsce odbioru: {donation.address}\n'\
+                     f'Miasto: {donation.city}\n'\
+                     f'Kod pocztowy: {donation.zip_code}\n'\
+                     f'Nr Twojego telefonu: {donation.phone_number}\n'\
+                     f'Data odbioru: {donation.pick_up_date}\n'\
+                     f'Godzina odbioru: {donation.pick_up_time}\n'\
+                     f'Komentarz do odbioru: {donation.pick_up_comment}\n\n'\
+                     f'Pozdrawiamy,\n'\
+                     f'Administracja strony'
 
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [user.email]
@@ -173,19 +170,17 @@ class SaveDonationApiView(View):
 class SendContactMailApiView(View):
     def send_mail_to_user(self, first_name, last_name, email):
         subject = 'Potwierdzenie otrzymania wiadomości'
-        email_body = f"""
-                        {first_name} {last_name}, dziękujemy za kontakt.\n 
-                        Administrator odezwie się do Ciebie najszybciej jak to możliwe.
-                     """
+        email_body = f'{first_name} {last_name}, dziękujemy za kontakt.\n '\
+                     f'Administrator odezwie się do Ciebie najszybciej jak to możliwe.'
+
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
         send_mail(subject, email_body, email_from, recipient_list)
 
     def send_mail_to_admins(self, first_name, last_name, email, user_message):
         subject = f'Wiadomość od {first_name} {last_name} ({email})'
-        email_body = f"""
-                        Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}".
-                     """
+        email_body = f'Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}"'
+
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [user.email for user in User.objects.filter(is_superuser=True)]
         send_mail(subject, email_body, email_from, recipient_list)
