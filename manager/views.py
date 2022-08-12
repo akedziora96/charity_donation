@@ -108,7 +108,7 @@ class GetInstitutionApiView(View):
             institutions = institutions.filter(categories__id=category_id)
 
         data = serialize('json', institutions)
-        return HttpResponse(data, content_type="application/json")
+        return HttpResponse(data, content_type='application/json')
 
 
 class SaveDonationApiView(View):
