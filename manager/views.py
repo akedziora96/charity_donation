@@ -85,7 +85,9 @@ class PaginationApiView(View):
         return HttpResponse(data, content_type="application/json")
 
 
-class GetDonationApiView(View):
+class GetDonationApiView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def get(self, request):
         donation = get_object_or_404(Donation, id=request.GET.get('id'))
 
@@ -101,7 +103,9 @@ class GetDonationApiView(View):
         return HttpResponse(data, content_type="application/json")
 
 
-class GetInstitutionApiView(View):
+class GetInstitutionApiView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('login')
+
     def get(self, request):
         category_ids = request.GET.getlist('id')
 
@@ -159,11 +163,7 @@ class SaveDonationApiView(LoginRequiredMixin, View):
         is_date_from_past = form.has_error('__all__', 'date_from_past')
         is_hour_from_past = form.has_error('__all__', 'hour_from_past')
 
-        if is_double_sent and not is_date_from_past and not is_hour_from_past:
-            error_message_to_json = errors_messages.get('__all__')
-        elif is_date_from_past and not is_hour_from_past and not is_double_sent:
-            error_message_to_json = errors_messages.get('__all__')
-        elif is_hour_from_past and not is_date_from_past and not is_double_sent:
+        if is_double_sent or is_date_from_past or is_hour_from_past:
             error_message_to_json = errors_messages.get('__all__')
         else:
             error_message_to_json = 'Błąd walidacji formularza.<br>Wykonaj reset (CTRL+F5) przeglądarki.'

@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def name_regex_validator(name, order, code):
+    name = name.strip()
     pattern = r'^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+(-{1}[A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ]+)?)$'
 
     if not re.fullmatch(pattern, name):

@@ -90,7 +90,7 @@ def donation(foundation, user, category):
         phone_number='+99 999 999 999',
         zip_code='99-999',
         pick_up_date='2012-12-12',
-        pick_up_time='12:00',
+        pick_up_time='12:00:00',
         pick_up_comment='Lorem Ipsum',
         user=user
     )
