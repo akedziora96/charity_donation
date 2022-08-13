@@ -708,7 +708,7 @@ function getInstitutionName(id) {
 function getAdress() {
     const address = document.querySelector('input[name="address"]').value
     const addressRegex = new RegExp(
-        /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*\s\d{0,5}\/?\d{0,5}[a-zA-Z]?)$/
+        /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+\.?([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*\s\d{1,5}(\/\d{0,5})?[a-zA-Z]?)$/
     );
     if (! addressRegex.test(address)) {
         DisplayMessage('Nieprawidłowy adres.')
@@ -734,10 +734,15 @@ function getAdress() {
     }
 
     let phone = document.querySelector('input[name="phone_number"]').value
-    const phoneRegex = new RegExp(
-        /(?<!\w)(\(?(\+|00)?48\)?)?[ -]?\d{3}[ -]?\d{3}[ -]?\d{3}(?!\w)/
-    );
-    if (! phoneRegex.test(phone)) {
+    phone = phone.replaceAll('-', ' ')
+    const phone_to_validate = phone.replaceAll(' ', '')
+
+    console.log(phone_to_validate)
+    const pattern = (
+        /(?:(?:(?:\+|00)?48)|(?:\(\+?48\)))?(?:1[2-8]|2[2-69]|3[2-49]|4[1-8]|5[0-9]|6[0-35-9]|[7-8][1-9]|9[145])\d{7}/
+    )
+    const phoneRegex = new RegExp(pattern);
+    if (! phoneRegex.test(phone_to_validate)) {
         DisplayMessage('Nieprawidłowy numer telefony')
         return false
     }

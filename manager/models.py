@@ -52,7 +52,7 @@ class Donation(models.Model):
     address = models.CharField(
         max_length=100, verbose_name='adres zamieszkania', validators=[address_regex_validator]
     )
-    phone_number = models.CharField(max_length=15, verbose_name='nr telefonu', validators=[phone_regex_validator])
+    phone_number = models.CharField(max_length=16, verbose_name='nr telefonu', validators=[phone_regex_validator])
     city = models.CharField(max_length=100, verbose_name='miasto', validators=[city_name_regex_validator])
     zip_code = models.CharField(max_length=6, verbose_name='kod pocztowy', validators=[postcode_regex_validator])
     pick_up_date = models.DateField(verbose_name='data odbioru')

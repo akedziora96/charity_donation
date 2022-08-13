@@ -107,8 +107,8 @@ class CustomPasswordResetForm(PasswordResetForm):
 
     def clean_email(self):
         data = self.cleaned_data
-        email = data.get('email')
-        if not User.objects.filter(email=email).exists():
+        email = data.get('email').strip()
+        if not User.objects.filter(email__icontains=email).exists():
             raise ValidationError(_('Konto użytkownika o podanym mailu nie istnieje!'), code='email_doesnt_exist')
 
         return data

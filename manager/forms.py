@@ -28,6 +28,11 @@ class DonationAddForm(forms.ModelForm):
         pick_up_date = cleaned_data.get('pick_up_date')
         pick_up_time = cleaned_data.get('pick_up_time')
 
+        if not pick_up_date or not pick_up_date:
+            raise ValidationError(
+                _('Brak wypełnionego pola z datą lub godziną lub obu pól.'), code='empty_date_time_fields'
+            )
+
         if pick_up_date < timezone.now().date():
             raise ValidationError(
                 _('Nieprawidłowa data odbioru. Wprowadzona data jest z przeszłości.'), code='date_from_past'
@@ -39,7 +44,7 @@ class DonationAddForm(forms.ModelForm):
             )
 
         user_last_submit = Donation.objects.filter(user=self.user).order_by('-created').first()
-        if timezone.now() - user_last_submit.created < timedelta(seconds=30):
+        if user_last_submit and timezone.now() - user_last_submit.created < timedelta(seconds=30):
             raise ValidationError(
                 _('Nie można ponownie wysłać formularza od momentu jego poprzedniego wysłania.'), code='double_sent'
             )
