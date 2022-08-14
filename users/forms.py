@@ -111,7 +111,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         if not User.objects.filter(email__icontains=email).exists():
             raise ValidationError(_('Konto użytkownika o podanym mailu nie istnieje!'), code='email_doesnt_exist')
 
-        return data
+        return email
 
 
 class CustomSetPasswordForm(SetPasswordForm):

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Aktywacja użytkownia{% endblock %}
+
+{% block content %}
+    <header>
+        {% include "navbar.html" %}
+    </header>
+
+    <section class="login-page">
+        <h2>Aktywacja użytkownika</h2>
+        <div class="form-group" style="text-align:center; justify-content: center; display: flex; flex-direction: column">
+            {% if status == "user is now activated" %}
+            <p style="font-size: 20px;">Aktywacja Twojego konta została przeprowadzona pomyślnie. Możesz się już <a href="{% url "login" %}"><b>zalogować</b></a>.</p>
+            {% elif status == "user is already activated"%}
+            <p style="font-size: 20px;">Twoje konto zostało aktywowane już wcześniej. Możesz się <a href="{% url "login" %}"><b>zalogować</b></a>.</p>
+            {% elif status == "decoding error"%}
+            <p style="font-size: 20px;">Link uszkodzony. Przepraszamy za niedogodnosci i prosimy o kontakt z nami.</p>
+            {% endif%}
+        </div>
+    </section>
+{% endblock %}
