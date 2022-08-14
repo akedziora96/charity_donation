@@ -14,3 +14,4 @@ organizację której chce przekazać dary oraz miejsce swojego zamieszkania, w k
 organizacja odbierze wspomniane dary. Aplikacja umożliwia darczyńcom przeglądanie darowizn,
 w tym potwierdzanie ich odbioru przez fundacje. Do aplikacji załączono wygodny panel administratora w języku polskim, 
 umożliwiający łatwe zarządzanie stroną (operacje CRUD).
+
