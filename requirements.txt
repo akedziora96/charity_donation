@@ -2,8 +2,8 @@ asgiref==3.5.2
 attrs==22.1.0
 certifi==2022.6.15
 charset-normalizer==2.1.0
-Django==4.0.6
-Faker==13.15.1
+Django==4.0.7
+Faker==14.0.0
 idna==3.3
 iniconfig==1.1.1
 jsonpath==0.82
