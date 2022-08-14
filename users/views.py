@@ -98,7 +98,7 @@ class UserActivateView(UserPassesTestMixin, View):
         except ObjectDoesNotExist or DjangoUnicodeDecodeError:
             status = 'decoding error'
 
-        return render(request, 'activation_confirm.html', {'status': status})
+        return render(request, 'users/activation_confirm.html', {'status': status})
 
 
 class UserDetailView(LoginRequiredMixin, ListView):
