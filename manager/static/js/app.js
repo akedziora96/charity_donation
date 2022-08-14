@@ -375,7 +375,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
     function submitConntact(e) {
-        console.log(this)
         e.preventDefault();
         const contactSubmitButton = document.querySelector('button#contact-form-submit')
         makeSubmitButtonWait(contactSubmitButton)
@@ -474,7 +473,7 @@ function createInstitutionsPageHtml(institutionType, data) {
         div4.appendChild(div5)
 
     })
-    console.log(list)
+
 }
 
 
@@ -488,7 +487,7 @@ function createUserDonations(checkbox) {
         .then(data => {
             const div = document.querySelector('div.user-donations')
             div.querySelectorAll('tr').forEach(tr => {tr.remove()});
-            data.forEach(obj =>  {console.log(obj); createTr(data, obj)})
+            data.forEach(obj => createTr(data, obj))
         })
 }
 
@@ -707,9 +706,9 @@ function getInstitutionName(id) {
 //STEP FOUR
 function getAdress() {
     const address = document.querySelector('input[name="address"]').value
-    const addressRegex = new RegExp(
-        /^(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+\.?([-|\s]?([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)*\s\d{1,5}(\/\d{0,5})?[a-zA-Z]?)$/
-    );
+    const addressRegex = new RegExp(['((([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+|\\d{0,4})',
+                        '\\.?([-|\\s]?(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)|\\d{0,4})*',
+                        '\\s\\d{0,5}\\/?\\d{0,5}[a-zA-Z]?)$'].join(''));
     if (! addressRegex.test(address)) {
         DisplayMessage('Nieprawidłowy adres.')
         return false
@@ -737,11 +736,10 @@ function getAdress() {
     phone = phone.replaceAll('-', ' ')
     const phone_to_validate = phone.replaceAll(' ', '')
 
-    console.log(phone_to_validate)
-    const pattern = (
+    const phonePattern = (
         /(?:(?:(?:\+|00)?48)|(?:\(\+?48\)))?(?:1[2-8]|2[2-69]|3[2-49]|4[1-8]|5[0-9]|6[0-35-9]|[7-8][1-9]|9[145])\d{7}/
     )
-    const phoneRegex = new RegExp(pattern);
+    const phoneRegex = new RegExp(phonePattern);
     if (! phoneRegex.test(phone_to_validate)) {
         DisplayMessage('Nieprawidłowy numer telefony')
         return false
@@ -758,7 +756,6 @@ function getDate() {
     const dateInput = new Date(date);
     dateInput.setHours(0,0,0,0)
 
-    console.log(dateToday, dateInput)
     if ((dateInput < dateToday) || !date) {
         DisplayMessage('Nieprawidłowa data odbioru<br>lub data odbioru jest z przeszłości.')
         return false
@@ -773,8 +770,6 @@ function getDate() {
     const timeInput = new Date();
     timeInput.setHours(hour, minutes, 0, 0)
 
-    console.log(timeInput.getTime(), timeNow.getTime() )
-    console.log(dateInput >= dateToday)
     if (dateInput <= dateToday && timeInput.getTime() < timeNow.getTime() || !time) {
         DisplayMessage('Nieprawidłowa godzina odbioru<br>lub godzina odbioru jest z przeszłości.')
         return false
@@ -880,7 +875,8 @@ function makeSubmitButtonDefault(button) {
 function displayErrors(data) {
     const keys = Object.keys(data.fields_errors)
         keys.forEach(singleKey => {
-        const invalidElement = document.querySelector('form.form--contact').querySelector(`input[name="${singleKey}"]`)
+        const invalidElement = document.querySelector('form.form--contact')
+            .querySelector(`input[name="${singleKey}"]`)
         invalidElement.value = ''
         invalidElement.placeholder = data.fields_errors[singleKey]
         invalidElement.style.setProperty("--c", "red")

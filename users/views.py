@@ -1,7 +1,7 @@
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import (
-    LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView,
+    LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView, PasswordChangeDoneView,
 )
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
@@ -31,6 +31,9 @@ class Login(LoginView):
 class Register(UserPassesTestMixin, View):
     def test_func(self):
         return not self.request.user.is_authenticated
+
+    def handle_no_permission(self):
+        return redirect('landing-page')
 
     def send_activation_token(self, user):
         user = user
@@ -75,7 +78,12 @@ class UserActivateView(UserPassesTestMixin, View):
     def test_func(self):
         return not self.request.user.is_authenticated
 
+    def handle_no_permission(self):
+        return redirect('landing-page')
+
     def get(self, request, uidb64, token):
+        status = None
+
         try:
             user_id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=user_id)
@@ -83,26 +91,28 @@ class UserActivateView(UserPassesTestMixin, View):
             if account_activation_token.check_token(user, token) and not user.is_active:
                 user.is_active = True
                 user.save()
-                messages.success(request, 'Konto zostało pomyślnie aktywowane.')
+                status = 'user is now activated'
             else:
-                messages.success(request, 'Konto zostało już aktywowane.')
+                status = 'user is already activated'
 
         except ObjectDoesNotExist or DjangoUnicodeDecodeError:
-            messages.success(request, 'Wystąþił błąd w czasie aktywacji.')
+            status = 'decoding error'
 
-        return redirect('login')
+        return render(request, 'activation_confirm.html', {'status': status})
 
 
-class UserDetailView(ListView):
+class UserDetailView(LoginRequiredMixin, ListView):
     model = Donation
+    login_url = reverse_lazy('login')
     template_name = 'users/user_details.html'
 
     def get_queryset(self):
         return Donation.objects.filter(user=self.request.user)
 
 
-class UserEditView(UpdateView):
+class UserEditView(LoginRequiredMixin, UpdateView):
     model = User
+    login_url = reverse_lazy('login')
     success_url = reverse_lazy('landing-page')
 
     form_class = CustomUserEditForm
@@ -116,12 +126,16 @@ class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     """View allows users to change their passwords"""
     form_class = CustomPasswordChangeForm
     login_url = reverse_lazy('landing-page')
-    # template_name = 'registration/user_password_change.html'
 
     def get_success_url(self):
         """Method forces loggin-out users accaouts and redirects to log-in View"""
-        logout(self.request.user)
-        return reverse_lazy('login-page')
+        logout(self.request)
+        return reverse_lazy('password_change_done')
+
+
+class UserPasswordChangeDoneView(View):
+    def get(self, request):
+        return render(request, 'registration/password_change_done.html')
 
 
 class UserPasswordResetView(PasswordResetView):
