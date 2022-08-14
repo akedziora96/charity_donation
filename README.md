@@ -1,5 +1,5 @@
 <h3>Web application for donating gifts [ENG]</h3>
-<div style="text-align: justify">
+<p align="justify">
 Project of a web application enabling donors to express their will to donate gifts to a foundation of their choice. 
 For this purpose, the donor fills fields in a form in which he or she specifies what gifts he wants to donate, 
 their number, the organization to which he wants to donate
