@@ -14,17 +14,21 @@ from django.conf import settings
 
 from .templatetags.filters import get_categories_names
 
-PAGINATION_OBJECTS_PER_PAGE = 1
+PAGINATION_OBJECTS_PER_PAGE = 5
 
 
 class LandingPageView(View):
+    """
+    Displays total donatedet bags and number of institutions which recieved donations. Also, it displays
+    first page of every type paginated institutions. The rest of pages are dinamicaly loaded, without page reload,
+    with the use of JavaScript script, which fetches pages from PaginationApiView.
+    """
     def first_page(self, institution_type):
         paginator = Paginator(Institution.objects.filter(type=institution_type), PAGINATION_OBJECTS_PER_PAGE)
         return paginator.page(1)
 
     def get(self, request):
         insitutions = Institution.objects.all()
-
         total_donated_quantity = Donation.objects.all().aggregate(Sum('quantity'))
         donated_institutions = insitutions.filter(donation__quantity__gt=0).distinct().count()
 
@@ -44,6 +48,11 @@ class LandingPageView(View):
 
 
 class DonationAddView(LoginRequiredMixin, View):
+    """
+    Renders form which enables potential donors to express willingness to donate one of selected institutions and fill
+    key information about it (see Donation model). Categories are passed to context because they are on a first step of
+    the form. Rest of form is supported by JS to provide dynamic switch steps of itself.
+    """
     login_url = reverse_lazy('login')
 
     def get(self, request):
@@ -52,6 +61,7 @@ class DonationAddView(LoginRequiredMixin, View):
 
 
 class DonationConfirmationView(LoginRequiredMixin, View):
+    """Renders confirmation information about sucess donation."""
     login_url = reverse_lazy('login')
 
     def get(self, request):
@@ -59,6 +69,7 @@ class DonationConfirmationView(LoginRequiredMixin, View):
 
 
 class ContactConfirmationView(View):
+    """Renders confirmation information about sucess donation."""
     def get(self, request):
         return render(request, 'manager/form_contact_confirmation.html')
 
@@ -67,6 +78,10 @@ class ContactConfirmationView(View):
 
 
 class PaginationApiView(View):
+    """
+    Provides acess to Page object basing on number of page and type of institution.
+    It is used to provide pagination without page reloading.
+    """
     def get(self, request):
         page = request.GET.get('page')
         institution_type = request.GET.get('type')
@@ -86,6 +101,10 @@ class PaginationApiView(View):
 
 
 class GetDonationApiView(LoginRequiredMixin, View):
+    """
+    Provides acess to loged-in user's all Donation objects.
+    Also, enables to mark which donation was taken by institution without page reloading.
+    """
     login_url = reverse_lazy('login')
 
     def get(self, request):
@@ -104,6 +123,10 @@ class GetDonationApiView(LoginRequiredMixin, View):
 
 
 class GetInstitutionApiView(LoginRequiredMixin, View):
+    """
+    Provides acess to Institution object which simultaneously accepts the gifts of all categories selected by the user,
+    which were marked by her/him on first step of form. When user marks no checkbox, it returns all institutions in db.
+    """
     login_url = reverse_lazy('login')
 
     def get(self, request):
@@ -118,6 +141,7 @@ class GetInstitutionApiView(LoginRequiredMixin, View):
 
 
 class SaveDonationApiView(LoginRequiredMixin, View):
+    """Creates Donation institution and send confirmation mail to the donor."""
     login_url = reverse_lazy('login')
 
     def send_confirmation_mail(self, user, donation):
@@ -172,6 +196,9 @@ class SaveDonationApiView(LoginRequiredMixin, View):
 
 
 class SendContactMailApiView(View):
+    """
+    Provides users to send mail to admins from every page of this app, through contact form placed in a footer.
+    """
     def send_mail_to_user(self, first_name, last_name, email):
         subject = 'Potwierdzenie otrzymania wiadomości'
         email_body = f'{first_name} {last_name}, dziękujemy za kontakt.\n '\
