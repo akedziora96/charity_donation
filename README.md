@@ -9,12 +9,12 @@ including confirmation of their receipt by foundations. A convenient admin panel
 been attached to the application, enabling easy website management (CRUD operations).
 </div>
 
-<div style="text-align: justify">
+
 <h3>Aplikacja webowa do przekazywania darów [PL]</h3>
-Projekt aplikacji webowej umożliwiającej darczyńcom wyrażenie woli przekazywania darów  wybranej przez nich fundacji. 
+<p align="justify">Projekt aplikacji webowej umożliwiającej darczyńcom wyrażenie woli przekazywania darów  wybranej przez nich fundacji. 
 W tym celu darczyńca wypełnia formularz w którym określa jakie dary chce przekazać, ich liczbę, 
 organizację której chce przekazać dary oraz miejsce swojego zamieszkania, w którym, wybrana przez darczyńcę, 
 organizacja odbierze wspomniane dary. Aplikacja umożliwia darczyńcom przeglądanie darowizn,
 w tym potwierdzanie ich odbioru przez fundacje. Do aplikacji załączono wygodny panel administratora w języku polskim, 
 umożliwiający łatwe zarządzanie stroną (operacje CRUD).
-</div>
+</p>
