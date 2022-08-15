@@ -4,7 +4,6 @@ import pytz
 
 from faker import Faker
 from charity_donation_project.settings import TIME_ZONE
-from django.utils import timezone
 
 fake = Faker("pl_PL")
 TZ = pytz.timezone(TIME_ZONE)

@@ -3,10 +3,9 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from manager.tests.utils import custom_fake_adress
-
 from faker import Faker
 fake = Faker("pl_PL")
+
 
 def address_regex_validator(address):
     """Checks if phone number is propper formated"""

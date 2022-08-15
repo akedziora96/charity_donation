@@ -1,15 +1,8 @@
-import json
-import random
-
-import jsonpath as jsonpath
 import pytest
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from faker import Faker
-import requests
-
 
 from ..models import User
 from ..utils import account_activation_token
@@ -117,7 +110,7 @@ def test_register_view(client):
 
 
 @pytest.mark.django_db
-def test_register_view_non_logged_user(client, user):
+def test_register_view_logged_user(client, user):
     url = reverse('register')
     redirect_url = reverse('landing-page')
     client.force_login(user)
@@ -142,6 +135,16 @@ def test_user_activate_view_non_logged_user(client, inacitve_user):
 
     activated_user = User.objects.get(id=inacitve_user.id)
     assert activated_user.is_active is True
+
+
+@pytest.mark.django_db
+def test_user_detail_view(client, user, donation):
+    url = reverse('user-details')
+    client.force_login(user)
+
+    response = client.get(url)
+    assert response.status_code == 200
+    assert list(response.context['object_list']) == list(user.donation_set.all())
 
 
 @pytest.mark.django_db

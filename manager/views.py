@@ -200,6 +200,10 @@ class SendContactMailApiView(View):
     Provides users to send mail to admins from every page of this app, through contact form placed in a footer.
     """
     def send_mail_to_user(self, first_name, last_name, email):
+        """
+        Sends "feedback" mail to user with confirmaiton of delivering user's message
+        to every user who has superuser status.
+        """
         subject = 'Potwierdzenie otrzymania wiadomości'
         email_body = f'{first_name} {last_name}, dziękujemy za kontakt.\n '\
                      f'Administrator odezwie się do Ciebie najszybciej jak to możliwe.'
@@ -209,6 +213,7 @@ class SendContactMailApiView(View):
         send_mail(subject, email_body, email_from, recipient_list)
 
     def send_mail_to_admins(self, first_name, last_name, email, user_message):
+        """Sends user's mail to every user who has superuser status."""
         subject = f'Wiadomość od {first_name} {last_name} ({email})'
         email_body = f'Użytkownik o mailu {email} wysłał następującą wiadmość: "{user_message}"'
 

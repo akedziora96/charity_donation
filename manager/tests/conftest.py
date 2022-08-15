@@ -1,9 +1,4 @@
-import os
-import sys
-import random
-
 from faker import Faker
-from django.test import Client
 import pytest
 
 from users.models import User
@@ -58,9 +53,22 @@ def category():
 
 
 @pytest.fixture
+def second_category():
+    return Category.objects.create(name='testcategory')
+
+
+@pytest.fixture
 def foundation(category):
     new_foundation = Institution.objects.create(name='testfoundation', description='Lorem Ipsum', type='1')
     new_foundation.categories.add(category)
+    new_foundation.save()
+    return new_foundation
+
+
+@pytest.fixture
+def second_foundation(category, second_category):
+    new_foundation = Institution.objects.create(name='testfoundation2', description='Lorem Ipsum', type='1')
+    new_foundation.categories.add(category, second_category)
     new_foundation.save()
     return new_foundation
 
@@ -97,3 +105,5 @@ def donation(foundation, user, category):
     donation.categories.add(category)
     donation.save()
     return donation
+
+
