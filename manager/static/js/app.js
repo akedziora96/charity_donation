@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
             /* Step 1 */
             if(this.currentStep === 2) {
-                const ids = get_checked_chexboxes();
+                const ids = getCheckedCategoryChexboxes();
                 if (ids.length === 0) {
                     this.currentStep--
                     DisplayMessage('Nie dokonano wyboru.')
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             }
                             else {
                                 this.updateForm();
-                                show_id(address, crateChoiceHtml);
+                                showId(address, crateListInstitutions);
                                 getCategoriesNames(ids)
                                 ClearMessages()
                     }
@@ -242,15 +242,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
             /* Step 3 */
             if (this.currentStep === 4) {
-                const radio_id = getRadio()
-                if(radio_id.length ===0 ) {
+                const institutionId = getSelectedInstitution()
+                if(institutionId.length ===0 ) {
                     this.currentStep--
                     DisplayMessage('Nie dokonano wyboru.')
 
                 }
                 else {
                     this.updateForm()
-                    getInstitutionName(radio_id)
+                    getInstitutionName(institutionId)
                     ClearMessages()
                 }
             }
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
           this.updateForm();
           if (this.currentStep === 1)
           {
-            remove_all_institutions_html()
+            removeAllInstitutionsHtml()
           }
           if (this.currentStep === 4) {
               removeAddressDateSummary()
@@ -369,6 +369,7 @@ document.addEventListener("DOMContentLoaded", function() {
       )
   })
     }
+    /* SEND POST DATA TO BE TO SEND CONTACT MAIL */
 
     const contactForm = document.querySelector('form.form--contact')
     contactForm.addEventListener("submit", e => submitConntact(e));
@@ -433,12 +434,18 @@ function setButtonActive(targetPage) {
 }
 
 function createInstitutionsPage(institutionType, pageNum) {
+    /*
+    Fetches pagination Page instance basing on institution type and page number.
+    */
     fetch(`/get-page-api/?type=${institutionType}&page=${pageNum}`).then(response => response.json())
         .then(data => {createInstitutionsPageHtml(institutionType, data)})
 
 }
 
 function createInstitutionsPageHtml(institutionType, data) {
+    /*
+    Creates page basing on pagination Page instance, which bases on institution type and page number.
+    */
     const list = document.querySelector("section#help").
     querySelector(`div[data-id="${institutionType}"]`).
     querySelector('ul')
@@ -483,6 +490,9 @@ function createInstitutionsPageHtml(institutionType, data) {
 //DYNAMIC DONATION  DISPLAY ON USER PROFILE PAGE
 
 function createUserDonations(checkbox) {
+    /*
+    Fetches to BE id which donation is untaken/taken and fetches from BE all donations donated by loged in user.
+    */
     fetch(`/get-donation-api/?id=${checkbox.value}`).then(response => response.json())
         .then(data => {
             const div = document.querySelector('div.user-donations')
@@ -492,6 +502,9 @@ function createUserDonations(checkbox) {
 }
 
 function createTr(data, obj) {
+    /*
+    Creates user's donation list.
+    */
     const tbody = document.querySelector('div.user-donations').querySelector('tbody')
     const tr = document.createElement('tr')
     if(obj.fields.is_taken) {
@@ -568,21 +581,24 @@ function formatTime(obj) {
 
 //STEP ONE
 function fetchAdress(address) {
-    const ids = get_checked_chexboxes();
+    /* Prepares only adress for fetching (see showId function) */
+    const ids = getCheckedCategoryChexboxes();
     const params = new URLSearchParams();
     ids.forEach(id => params.append("id", id))
     return  address + params.toString()
 }
 
-function get_checked_chexboxes()
-{
+function getCheckedCategoryChexboxes() {
     const markedCheckbox = document.querySelectorAll('input[type="checkbox"]:checked');
     const ids = [];
     markedCheckbox.forEach(box => ids.push(box.value));
     return ids;
 }
 
-function show_id(address, func) {
+function showId(address, func) {
+    /*
+    Fetches all institutions which simulaneously take gifts of all selected categories.
+    */
     fetch(fetchAdress(address)).then(response => response.json())
         .then(data => data.forEach(obj => {
             func(obj)
@@ -590,13 +606,18 @@ function show_id(address, func) {
 }
 
 function isEmpty(obj) {
+    /*
+    Check if is there any institution which simulaneously take gifts of all selected categories.
+    */
     return Object.keys(obj).length === 0;
 }
 
 
-function crateChoiceHtml(institution) {
-
-    const type_names = {
+function crateListInstitutions(institution) {
+    /*
+    Creates list of institutions which simulaneously take gifts of all selected categories.
+    */
+    const typeNames = {
         1: 'Fundacja',
         2: 'Organizacja Pozarządowa',
         3: 'Lokalna Zbiórka'
@@ -607,7 +628,6 @@ function crateChoiceHtml(institution) {
 
     const maindiv = document.createElement("div")
     maindiv.setAttribute("class", "form-group form-group--checkbox");
-    // maindiv.setAttribute('id', 'single-institution');
     div.insertBefore(maindiv, button)
 
     const label = document.createElement("label")
@@ -629,7 +649,7 @@ function crateChoiceHtml(institution) {
 
     const div1 = document.createElement("div")
     div1.setAttribute("class", "title")
-    div1.innerHTML = `${type_names[institution.fields.type]} "${institution.fields.name}"`
+    div1.innerHTML = `${typeNames[institution.fields.type]} "${institution.fields.name}"`
     span2.appendChild(div1)
 
     const div2 = document.createElement("div")
@@ -638,25 +658,22 @@ function crateChoiceHtml(institution) {
     span2.appendChild(div2)
 }
 
-function remove_all_institutions_html () {
+function removeAllInstitutionsHtml () {
+    /* Clears list of institutions between steps. */
     let div = document.querySelector('div#institutions');
     div.querySelectorAll('div.form-group--checkbox').forEach(div => {div.remove()})
 }
 
-function isInt(value) {
-  return !isNaN(value) &&
-         parseInt(Number(value)) == value &&
-         !isNaN(parseInt(value, 10));
-}
 
 function getCategoriesNames(ids) {
+    /* Saves gift categories names in donation summary (step 5). */
     const div = document.querySelector('div[data-step="1"]')
-    const checked_categories = []
+    const checkedCategories = []
     ids.forEach(id => {
-        checked_categories.push(div.querySelector(`input[value="${id}"]`))
+        checkedCategories.push(div.querySelector(`input[value="${id}"]`))
     })
     const categoriesNames = []
-    checked_categories.forEach(input => {
+    checkedCategories.forEach(input => {
         categoriesNames.push(input.nextElementSibling.nextElementSibling.innerHTML)
     })
     const spanCategories = document.querySelector('span#categories')
@@ -666,12 +683,19 @@ function getCategoriesNames(ids) {
 
 
 //STEP TWO
+function isInt(value) {
+  return !isNaN(value) &&
+         parseInt(Number(value)) == value &&
+         !isNaN(parseInt(value, 10));
+}
+
 function checkBagsQuantity() {
     const bags = document.querySelector('input#bags').value
     return (isInt(bags) && bags > 0)
 }
 
 function getBagsQuantity() {
+    /* Saves bags quantity in donation summary (step 5). */
     const bags = document.querySelector('input#bags').value
     const spanBags = document.querySelector('span#bags')
     let bagsDeclination = 'worek'
@@ -687,14 +711,16 @@ function getBagsQuantity() {
 
 
 //STEP THREE
-function getRadio() {
+function getSelectedInstitution() {
+    /* Gets id of institution which donor wants to donate. */
     let markedCheckbox = document.querySelectorAll('input[type="radio"]:checked');
-    let radio_id = [];
-    markedCheckbox.forEach(box => radio_id.push(box.value));
-    return radio_id
+    let institutionId = [];
+    markedCheckbox.forEach(box => institutionId.push(box.value));
+    return institutionId
 }
 
 function getInstitutionName(id) {
+    /* Saves donated institution name in donation summary (step 5). */
     const div = document.querySelector('div#institutions')
     const input = div.querySelector(`input[value="${id}"]`)
     const institutionName = input.nextSibling.nextSibling.firstChild.innerHTML
@@ -705,6 +731,7 @@ function getInstitutionName(id) {
 
 //STEP FOUR
 function getAdress() {
+    /* Validates and retrieves address information. */
     const address = document.querySelector('input[name="address"]').value
     const addressRegex = new RegExp(['((([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])+|\\d{0,4})',
                         '\\.?([-|\\s]?(([A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ])*)|\\d{0,4})*',
@@ -728,20 +755,20 @@ function getAdress() {
         /^((\d{2}-\d{3})|\d{5})$/
     );
     if (! postcodeRegex.test(postcode)) {
-        DisplayMessage('Nieprawidłowy kod pocztowy')
+        DisplayMessage('Nieprawidłowy kod pocztowy.')
         return false
     }
 
     let phone = document.querySelector('input[name="phone_number"]').value
     phone = phone.replaceAll('-', ' ')
-    const phone_to_validate = phone.replaceAll(' ', '')
+    const phoneToValidate = phone.replaceAll(' ', '')
 
     const phonePattern = (
         /(?:(?:(?:\+|00)?48)|(?:\(\+?48\)))?(?:1[2-8]|2[2-69]|3[2-49]|4[1-8]|5[0-9]|6[0-35-9]|[7-8][1-9]|9[145])\d{7}/
     )
     const phoneRegex = new RegExp(phonePattern);
-    if (! phoneRegex.test(phone_to_validate)) {
-        DisplayMessage('Nieprawidłowy numer telefony')
+    if (! phoneRegex.test(phoneToValidate)) {
+        DisplayMessage('Nieprawidłowy numer telefonu.')
         return false
     }
 
@@ -749,6 +776,7 @@ function getAdress() {
 }
 
 function getDate() {
+    /* Validates and retrieves date and time information. */
     const dateToday = new Date();
     dateToday.setHours(0,0,0,0)
 
@@ -787,6 +815,8 @@ function getDate() {
 }
 
 function createAddressDateSummary(address, date) {
+    /* Saves address information in donation summary (step 5). */
+
     const div = document.querySelector('div[data-step="5"]')
     const addressList = div.querySelector('ul#address-list')
     const dateList = div.querySelector('ul#date-list')
@@ -806,6 +836,7 @@ function createAddressDateSummary(address, date) {
 
 
 function removeAddressDateSummary() {
+    /* Clears address, date and time information in donation summary (step 5) between steps. */
     const div = document.querySelector('div[data-step="5"]')
     const addressList = div.querySelector('ul#address-list')
     const dateList = div.querySelector('ul#date-list')
@@ -816,6 +847,7 @@ function removeAddressDateSummary() {
 
 
 function DisplayMessage(text) {
+    /* Creates div with messages contain validation errors. */
     const parentDiv = document.querySelector('div.active').querySelector('.form-group--buttons')
     const messageDiv = parentDiv.querySelector('div.message')
 
@@ -841,6 +873,7 @@ function DisplayMessage(text) {
 }
 
 function ClearMessages() {
+    /* Clears (remove) div with messages contain validation errors between steps. */
     const parentDivs = document.querySelectorAll('.form-group--buttons')
 
     parentDivs.forEach(parentDiv => {
@@ -851,6 +884,7 @@ function ClearMessages() {
 }
 
 function makeSubmitButtonWait(button) {
+    /* Makes submit button unable to fetch twice in short period of time and other button/links to submit or redirect*/
     button.innerHTML = 'Oczekiwanie'
     document.body.style.cursor = 'wait';
     document.querySelectorAll('button').forEach(button => button.style.cursor='wait')
@@ -862,6 +896,7 @@ function makeSubmitButtonWait(button) {
 }
 
 function makeSubmitButtonDefault(button) {
+    /* Makes submit button and other buttons default */
     button.innerHTML = 'Potwierdzam'
     document.body.style.cursor = 'default'
     document.querySelectorAll('button').forEach(button => button.style.cursor='pointer')
@@ -873,6 +908,7 @@ function makeSubmitButtonDefault(button) {
 }
 
 function displayErrors(data) {
+    /* Displays contact form validation erors instead of form fields placeholders */
     const keys = Object.keys(data.fields_errors)
         keys.forEach(singleKey => {
         const invalidElement = document.querySelector('form.form--contact')

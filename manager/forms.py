@@ -2,10 +2,8 @@ from datetime import timedelta
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from users.models import User
 from users.validators import first_name_regex_validator, last_name_regex_validator
 from .models import Donation
 
@@ -84,6 +82,6 @@ class AnnonymousMailContactForm(forms.Form):
 class LoggedUserMailContactForm(forms.Form):
     message = forms.CharField(
         max_length=1000, widget=forms.Textarea(
-            attrs={'id': 'id_contact_message','placeholder': 'Wiadomość'}
+            attrs={'id': 'id_contact_message', 'placeholder': 'Wiadomość'}
         )
     )

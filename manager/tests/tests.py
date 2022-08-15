@@ -1,16 +1,11 @@
-import json
 import random
 
-import jsonpath as jsonpath
 import pytest
 from django.urls import reverse
-from django.utils import timezone
 from faker import Faker
-import requests
 
 from .utils import custom_fake_adress, custom_fake_non_past_date, custom_fake_non_past_time
-from ..models import Category, Institution, Donation
-from users.models import User
+from ..models import Institution, Donation
 
 fake = Faker("pl_PL")
 
@@ -178,6 +173,26 @@ def test_get_institution_api_view_loged_users(client, foundation, category, user
     assert responseJson[0]['fields']['type'] == int(foundation.type)
     assert responseJson[0]['fields']['description'] == foundation.description
     assert responseJson[0]['fields']['categories'][0] == category.id
+
+
+@pytest.mark.django_db
+def test_get_institution_api_view_intersection(client, foundation, second_foundation, category, second_category, user):
+    """Tests if "GET" method returns only institutions which simultaneously take gift af all chosen categories"""
+    url_without_tags = reverse('institution-api')
+    url_with_tags = reverse('institution-api') + f'?id={category.id}&id={second_category.id}'
+    client.force_login(user)
+
+    response = client.get(url_without_tags)
+    responseJson = response.json()
+
+    assert response.status_code == 200
+    assert len(responseJson) == 2
+
+    response = client.get(url_with_tags)
+    responseJson = response.json()
+
+    assert response.status_code == 200
+    assert len(responseJson) == 1
 
 
 @pytest.mark.django_db

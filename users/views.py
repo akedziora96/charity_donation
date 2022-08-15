@@ -1,7 +1,7 @@
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import (
-    LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView, PasswordChangeDoneView,
+    LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView,
 )
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
@@ -28,7 +28,7 @@ class Login(LoginView):
     form_class = CustomAuthenticationForm
 
 
-class Register(UserPassesTestMixin, View):
+class UserRegisterView(UserPassesTestMixin, View):
     def test_func(self):
         return not self.request.user.is_authenticated
 
@@ -36,6 +36,7 @@ class Register(UserPassesTestMixin, View):
         return redirect('landing-page')
 
     def send_activation_token(self, user):
+        """Generates and sends a token which enables user to activate himself/herself."""
         user = user
         domain = get_current_site(self.request).domain
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -56,6 +57,7 @@ class Register(UserPassesTestMixin, View):
         return render(request, 'users/register.html', {'form': form})
 
     def post(self, request):
+        """Creates a new inactive user."""
         form = CustomUserCreationForm(request.POST)
 
         if form.is_valid():
@@ -82,8 +84,6 @@ class UserActivateView(UserPassesTestMixin, View):
         return redirect('landing-page')
 
     def get(self, request, uidb64, token):
-        status = None
-
         try:
             user_id = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=user_id)
@@ -102,6 +102,9 @@ class UserActivateView(UserPassesTestMixin, View):
 
 
 class UserDetailView(LoginRequiredMixin, ListView):
+    """
+    Displays user's details and history of user's donatiotions (see also GetDonationApiView in manager's views).
+    """
     model = Donation
     login_url = reverse_lazy('login')
     template_name = 'users/user_details.html'
@@ -123,17 +126,17 @@ class UserEditView(LoginRequiredMixin, UpdateView):
 
 
 class UserPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
-    """View allows users to change their passwords"""
     form_class = CustomPasswordChangeForm
     login_url = reverse_lazy('landing-page')
 
     def get_success_url(self):
-        """Method forces loggin-out users accaouts and redirects to log-in View"""
+        """Logouts a logged-in user and redirects to UserPasswordChangeDoneView View."""
         logout(self.request)
         return reverse_lazy('password_change_done')
 
 
 class UserPasswordChangeDoneView(View):
+    """Subtitutes generic PasswordChangeDoneView, allowing acess for not logged-in users."""
     def get(self, request):
         return render(request, 'registration/password_change_done.html')
 

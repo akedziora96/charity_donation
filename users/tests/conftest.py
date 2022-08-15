@@ -1,11 +1,7 @@
-import os
-import sys
-import random
-
 from faker import Faker
-from django.test import Client
 import pytest
 
+from manager.models import Donation, Category, Institution
 from users.models import User
 
 
@@ -45,3 +41,34 @@ def user(new_user_factory):
 @pytest.fixture
 def inacitve_user(new_user_factory):
     return new_user_factory(email='inactive_user@test.pl', is_active=False)
+
+
+@pytest.fixture
+def category():
+    return Category.objects.create(name='testcategory')
+
+
+@pytest.fixture
+def foundation(category):
+    new_foundation = Institution.objects.create(name='testfoundation', description='Lorem Ipsum', type='1')
+    new_foundation.categories.add(category)
+    new_foundation.save()
+    return new_foundation
+
+
+@pytest.fixture
+def donation(foundation, user, category):
+    donation = Donation.objects.create(
+        quantity=10,
+        institution=foundation,
+        address='test street 100',
+        phone_number='+99 999 999 999',
+        zip_code='99-999',
+        pick_up_date='2012-12-12',
+        pick_up_time='12:00:00',
+        pick_up_comment='Lorem Ipsum',
+        user=user
+    )
+    donation.categories.add(category)
+    donation.save()
+    return donation
